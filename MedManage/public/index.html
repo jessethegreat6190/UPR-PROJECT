@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedManage - Hospital Pharmacy System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --clinical-blue: #004a99;
+            --sanitary-teal: #008080;
+            --emergency-red: #d32f2f;
+            --warning-orange: #f57c00;
+            --hospital-white: #ffffff;
+            --serum-grey: #f4f7f6;
+            --text-main: #2c3e50;
+        }
+        
+        body {
+            background-color: var(--serum-grey);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+        }
+        
+        .sidebar {
+            background: var(--clinical-blue);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        
+        .sidebar h4 { font-weight: 700; margin-bottom: 30px; }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        
+        .stat-card {
+            background: var(--hospital-white);
+            border-left: 5px solid var(--clinical-blue);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card.teal { border-left-color: var(--sanitary-teal); }
+        .stat-card.dark { border-left-color: #2c3e50; }
+        
+        .stat-card h2 { margin: 10px 0 0 0; font-size: 28px; font-weight: 700; }
+        .stat-card .profit { font-size: 14px; color: var(--sanitary-teal); }
+        .stat-card .loss { color: var(--emergency-red); }
+        
+        .alert-badge {
+            background-color: var(--emergency-red);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .alert-item {
+            background: var(--hospital-white);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        
+        .alert-item.danger { border-left-color: var(--emergency-red); }
+        .alert-item.warning { border-left-color: var(--warning-orange); }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--clinical-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0,74,153,0.15);
+        }
+        
+        .btn-primary { background: var(--clinical-blue); border: none; }
+        .btn-primary:hover { background: #003d7a; }
+        .btn-teal { background: var(--sanitary-teal); color: white; border: none; }
+        .btn-teal:hover { background: #006666; color: white; }
+        
+        .table-card {
+            background: var(--hospital-white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .search-result {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .search-result div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-result div:hover { background: var(--serum-grey); }
+        .badge-low-stock { background: var(--emergency-red); }
+        .badge-expiry { background: var(--warning-orange); }
+        
+        @media (max-width: 768px) {
+            .sidebar { min-height: auto; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-md-block sidebar collapse show" id="sidebar">
+                <h4>MedManage</h4>
+                <div class="nav flex-column">
+                    <a class="nav-link active" onclick="showSection('dashboard')">Dashboard</a>
+                    <a class="nav-link" onclick="showSection('new-sale')">New Sale</a>
+                    <a class="nav-link" onclick="showSection('add-medicine')">Add Medicine</a>
+                    <a class="nav-link" onclick="showSection('inventory')">Inventory</a>
+                    <a class="nav-link" onclick="showSection('sales')">Sales History</a>
+                </div>
+            </nav>
+            
+            <main class="col-md-10 ms-sm-auto px-4">
+                <div class="d-flex justify-content-between align-items-center py-3">
+                    <h5 class="text-muted">Hospital Pharmacy Management</h5>
+                    <div class="d-flex align-items-center">
+                        <span id="alertBadge" class="alert-badge me-3" style="display: none;">0</span>
+                        <button class="btn btn-teal btn-sm" onclick="showAlerts()">Alerts</button>
+                    </div>
+                </div>
+                
+                <div id="dashboard" class="section">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card teal">
+                                <small style="text-transform: uppercase; color: #666;">Today's Sales</small>
+                                <h2 id="dailyTotal">UGX 0</h2>
+                                <span class="profit" id="dailyProfit">Profit: UGX 0</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <small style="text-transform: uppercase; color: #666;">Weekly Revenue</small>
+                                <h2 id="weeklyTotal">UGX 0</h2>
+                                <span class="profit" id="weeklyProfit">Profit: UGX 0</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card dark">
+                                <small style="text-transform: uppercase; color: #666;">Monthly Performance</small>
+                                <h2 id="monthlyTotal">UGX 0</h2>
+                                <span class="profit" id="monthlyProfit">Profit: UGX 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="table-card">
+                                <h6 class="mb-3" style="color: var(--emergency-red);">Low Stock Alerts</h6>
+                                <div id="lowStockList"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-card">
+                                <h6 class="mb-3" style="color: var(--warning-orange);">Expiring Soon (90 days)</h6>
+                                <div id="expiryList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="new-sale" class="section" style="display: none;">
+                    <div class="stat-card" style="max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: var(--clinical-blue); border-bottom: 2px solid var(--serum-grey); padding-bottom: 10px;">New Sale</h2>
+                        
+                        <form id="saleForm">
+                            <div class="mb-3 position-relative">
+                                <label class="form-label">Search Medicine</label>
+                                <input type="text" class="form-control" id="medicineSearch" placeholder="Type medicine name..." autocomplete="off">
+                                <div id="searchResults" class="search-result"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Selected Medicine</label>
+                                <input type="text" class="form-control" id="selectedMedicine" readonly>
+                                <input type="hidden" id="selectedMedicineId">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Available Stock</label>
+                                <input type="text" class="form-control" id="availableStock" readonly>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Unit Price (UGX)</label>
+                                <input type="text" class="form-control" id="unitPrice" readonly>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="saleQty" min="1" value="1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Total</label>
+                                <input type="text" class="form-control" id="saleTotal" readonly>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" id="paymentMethod">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Mobile Money">Mobile Money</option>
+                                    <option value="Credit">Credit</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-2">Complete Sale</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="add-medicine" class="section" style="display: none;">
+                    <div class="stat-card" style="max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: var(--clinical-blue); border-bottom: 2px solid var(--serum-grey); padding-bottom: 10px;">Register New Stock</h2>
+                        
+                        <form id="medicineForm">
+                            <div class="mb-3">
+                                <label class="form-label">Medicine Name / Brand</label>
+                                <input type="text" class="form-control" id="medName" placeholder="e.g., Amoxicillin 500mg" required>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="medCategory">
+                                        <option value="tablet">Tablets</option>
+                                        <option value="syrup">Syrup</option>
+                                        <option value="injectable">Injectable</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Batch Number</label>
+                                    <input type="text" class="form-control" id="batchNo" placeholder="BN-2026">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Cost Price (UGX)</label>
+                                    <input type="number" class="form-control" id="costPrice" placeholder="Wholesale price">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Selling Price (UGX)</label>
+                                    <input type="number" class="form-control" id="unitPriceAdd" placeholder="Retail price" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Initial Quantity</label>
+                                    <input type="number" class="form-control" id="totalStock" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Low Stock Alert At</label>
+                                    <input type="number" class="form-control" id="lowStockLevel" value="10">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control" id="expiryDate" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-2">Save to Digital Ledger</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="inventory" class="section" style="display: none;">
+                    <div class="table-card">
+                        <h5 class="mb-3">Medicine Inventory</h5>
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                            <div class="input-group" style="max-width: 300px;">
+                                <input type="text" class="form-control" id="inventorySearch" placeholder="Search inventory...">
+                                <button class="btn btn-outline-secondary" onclick="loadInventory()">Search</button>
+                            </div>
+                            <nav><ul class="pagination mb-0" id="inventoryPagination"></ul></nav>
+                        </div>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Category</th>
+                                    <th>Stock</th>
+                                    <th>Cost (UGX)</th>
+                                    <th>Price (UGX)</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="sales" class="section" style="display: none;">
+                    <div class="table-card">
+                        <h5 class="mb-3">Recent Sales</h5>
+                        <div class="mb-3 d-flex justify-content-end">
+                            <nav><ul class="pagination mb-0" id="salesPagination"></ul></nav>
+                        </div>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Medicine</th>
+                                    <th>Qty</th>
+                                    <th>Total (UGX)</th>
+                                    <th>Profit (UGX)</th>
+                                    <th>Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="editMedicineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Medicine</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMedicineForm">
+                        <input type="hidden" id="editMedId">
+                        <div class="mb-3">
+                            <label class="form-label">Medicine Name</label>
+                            <input type="text" class="form-control" id="editMedName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="editMedCategory">
+                                <option value="tablet">Tablets</option>
+                                <option value="syrup">Syrup</option>
+                                <option value="injectable">Injectable</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Cost Price (UGX)</label>
+                                <input type="number" class="form-control" id="editCostPrice" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Selling Price (UGX)</label>
+                                <input type="number" class="form-control" id="editUnitPrice" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Low Stock Alert At</label>
+                            <input type="number" class="form-control" id="editLowStockLevel">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditMedicine()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const functions = firebase.functions();
+        
+        const apiBase = '';
+        
+        async function callApi(endpoint, options = {}) {
+            const url = `/api/${endpoint}`;
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            return response.json();
+        }
+        
+        function formatUGX(amount) {
+            return 'UGX ' + Math.round(amount).toLocaleString();
+        }
+        
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (id === 'dashboard') loadDashboard();
+            if (id === 'inventory') loadInventory();
+            if (id === 'sales') loadSales();
+            if (id === 'new-sale') {
+                document.getElementById('medicineSearch').focus();
+            }
+        }
+        
+        async function loadDashboard() {
+            const data = await callApi('dashboard');
+            if (!data.success) return;
+            
+            document.getElementById('dailyTotal').textContent = formatUGX(data.data.daily.total);
+            document.getElementById('dailyProfit').textContent = 'Profit: ' + formatUGX(data.data.daily.profit);
+            document.getElementById('weeklyTotal').textContent = formatUGX(data.data.weekly.total);
+            document.getElementById('weeklyProfit').textContent = 'Profit: ' + formatUGX(data.data.weekly.profit);
+            document.getElementById('monthlyTotal').textContent = formatUGX(data.data.monthly.total);
+            document.getElementById('monthlyProfit').textContent = 'Profit: ' + formatUGX(data.data.monthly.profit);
+            
+            const badge = document.getElementById('alertBadge');
+            if (data.data.alert_count > 0) {
+                badge.style.display = 'block';
+                badge.textContent = data.data.alert_count;
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            let lowStockHtml = '';
+            data.data.lowStock.forEach(m => {
+                lowStockHtml += `<div class="alert-item danger">
+                    <strong>${m.name}</strong><br>
+                    <small>Stock: ${m.totalStock} (Threshold: ${m.lowStockThreshold})</small>
+                </div>`;
+            });
+            document.getElementById('lowStockList').innerHTML = lowStockHtml || '<p class="text-muted">No low stock alerts</p>';
+            
+            let expiryHtml = '';
+            data.data.expiring.forEach(b => {
+                const daysLeft = Math.ceil((new Date(b.expiryDate) - new Date()) / (1000*60*60*24));
+                expiryHtml += `<div class="alert-item warning">
+                    <strong>${b.medicineName}</strong><br>
+                    <small>Batch: ${b.batchNumber} - Expires: ${b.expiryDate} (${daysLeft} days)</small>
+                </div>`;
+            });
+            document.getElementById('expiryList').innerHTML = expiryHtml || '<p class="text-muted">No items expiring soon</p>';
+        }
+        
+        document.getElementById('medicineSearch').addEventListener('input', async function() {
+            const q = this.value;
+            handleSearchInput(q);
+        });
+        
+        let selectedIndex = -1;
+        let searchResultsData = [];
+        
+        async function handleSearchInput(q) {
+            selectedIndex = -1;
+            if (q.length < 2) {
+                document.getElementById('searchResults').style.display = 'none';
+                return;
+            }
+            const data = await callApi('medicines?action=search&q=' + encodeURIComponent(q));
+            if (!data.success) return;
+            
+            searchResultsData = data.data;
+            const results = document.getElementById('searchResults');
+            results.innerHTML = '';
+            data.data.forEach((m, index) => {
+                const div = document.createElement('div');
+                const stockDot = m.totalStock < 10 ? 
+                    '<span style="color: var(--emergency-red);">●</span>' : 
+                    '<span style="color: var(--sanitary-teal);">●</span>';
+                div.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><strong>${m.name}</strong></span>
+                    <span>
+                        ${stockDot} <small>${m.totalStock} stock</small> | <strong>${formatUGX(m.unitPrice)}</strong>
+                    </span>
+                </div>`;
+                div.onclick = () => selectMedicine(m);
+                div.dataset.index = index;
+                div.style.cursor = 'pointer';
+                div.style.padding = '12px';
+                div.style.borderBottom = '1px solid #eee';
+                results.appendChild(div);
+            });
+            results.style.display = data.data.length ? 'block' : 'none';
+        }
+        
+        document.getElementById('medicineSearch').addEventListener('keydown', function(e) {
+            const results = document.getElementById('searchResults');
+            const items = results.querySelectorAll('div[data-index]');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && searchResultsData[selectedIndex]) {
+                    selectMedicine(searchResultsData[selectedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                results.style.display = 'none';
+            }
+        });
+        
+        function updateSelection(items) {
+            items.forEach((item, i) => {
+                item.style.background = i === selectedIndex ? 'var(--serum-grey)' : 'white';
+            });
+        }
+        
+        function selectMedicine(m) {
+            document.getElementById('medicineSearch').value = m.name;
+            document.getElementById('selectedMedicine').value = m.name;
+            document.getElementById('selectedMedicineId').value = m.id;
+            document.getElementById('availableStock').value = m.totalStock;
+            document.getElementById('unitPrice').value = formatUGX(m.unitPrice);
+            document.getElementById('unitPrice').dataset.price = m.unitPrice;
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('saleQty').focus();
+            updateSaleTotal();
+        }
+        
+        document.getElementById('saleQty').addEventListener('input', updateSaleTotal);
+        
+        function updateSaleTotal() {
+            const qty = parseInt(document.getElementById('saleQty').value) || 0;
+            const price = parseFloat(document.getElementById('unitPrice').dataset.price) || 0;
+            document.getElementById('saleTotal').value = formatUGX(qty * price);
+        }
+        
+        document.getElementById('saleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const medicineId = document.getElementById('selectedMedicineId').value;
+            const qty = parseInt(document.getElementById('saleQty').value);
+            const stock = parseInt(document.getElementById('availableStock').value);
+            
+            if (!medicineId) {
+                alert('Please select a medicine');
+                return;
+            }
+            if (qty > stock) {
+                alert('Insufficient stock');
+                return;
+            }
+            
+            const data = await callApi('sales?action=create', {
+                method: 'POST',
+                body: JSON.stringify({
+                    medicineId: medicineId,
+                    qtySold: qty,
+                    paymentMethod: document.getElementById('paymentMethod').value
+                })
+            });
+            alert(data.message);
+            if (data.success) {
+                this.reset();
+                document.getElementById('selectedMedicine').value = '';
+                document.getElementById('availableStock').value = '';
+            }
+        });
+        
+        document.getElementById('medicineForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const data = await callApi('medicines?action=add', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: document.getElementById('medName').value,
+                    category: document.getElementById('medCategory').value,
+                    batchNumber: document.getElementById('batchNo').value,
+                    costPrice: document.getElementById('costPrice').value,
+                    unitPrice: document.getElementById('unitPriceAdd').value,
+                    totalStock: document.getElementById('totalStock').value,
+                    lowStockThreshold: document.getElementById('lowStockLevel').value,
+                    expiryDate: document.getElementById('expiryDate').value
+                })
+            });
+            alert(data.message);
+            if (data.success) this.reset();
+        });
+        
+        window.inventoryPage = 1;
+        window.salesPage = 1;
+        
+        function inventoryPage(page) {
+            window.inventoryPage = page;
+            loadInventory();
+            document.getElementById('inventory').scrollIntoView({behavior: 'smooth'});
+        }
+        
+        function salesPage(page) {
+            window.salesPage = page;
+            loadSales();
+            document.getElementById('sales').scrollIntoView({behavior: 'smooth'});
+        }
+        
+        function renderPagination(elementId, totalPages, currentPage, type) {
+            const el = document.getElementById(elementId);
+            if (!el || totalPages <= 1) {
+                if (el) el.innerHTML = '';
+                return;
+            }
+            let html = '';
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="event.preventDefault(); ${type}Page(${currentPage - 1})">Prev</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); ${type}Page(${i})">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="event.preventDefault(); ${type}Page(${currentPage + 1})">Next</a></li>`;
+            el.innerHTML = html;
+        }
+        
+        async function loadInventory() {
+            const search = document.getElementById('inventorySearch')?.value || '';
+            const page = window.inventoryPage || 1;
+            const data = await callApi(`medicines?action=getAll&search=${encodeURIComponent(search)}&page=${page}`);
+            if (!data.success) return;
+            
+            let html = '';
+            data.data.medicines.forEach(m => {
+                const isLow = m.totalStock <= m.lowStockThreshold;
+                html += `<tr>
+                    <td>${m.name}</td>
+                    <td>${m.category}</td>
+                    <td>${m.totalStock}</td>
+                    <td>${formatUGX(m.costPrice)}</td>
+                    <td>${formatUGX(m.unitPrice)}</td>
+                    <td>${isLow ? '<span class="badge badge-low-stock">Low Stock</span>' : '<span class="badge bg-success">OK</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary me-1" onclick="editMedicine('${m.id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteMedicine('${m.id}')">Delete</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('inventoryTable').innerHTML = html || '<tr><td colspan="7" class="text-center text-muted">No medicines found</td></tr>';
+            
+            renderPagination('inventoryPagination', data.data.totalPages, data.data.currentPage, 'inventory');
+        }
+        
+        async function editMedicine(id) {
+            const data = await callApi(`medicines?action=get&id=${id}`);
+            if (!data.success) {
+                alert(data.message);
+                return;
+            }
+            const m = data.data;
+            document.getElementById('editMedId').value = m.id;
+            document.getElementById('editMedName').value = m.name;
+            document.getElementById('editMedCategory').value = m.category;
+            document.getElementById('editCostPrice').value = m.costPrice;
+            document.getElementById('editUnitPrice').value = m.unitPrice;
+            document.getElementById('editLowStockLevel').value = m.lowStockThreshold;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editMedicineModal'));
+            modal.show();
+        }
+        
+        async function saveEditMedicine() {
+            const data = await callApi('medicines?action=edit', {
+                method: 'POST',
+                body: JSON.stringify({
+                    id: document.getElementById('editMedId').value,
+                    name: document.getElementById('editMedName').value,
+                    category: document.getElementById('editMedCategory').value,
+                    costPrice: document.getElementById('editCostPrice').value,
+                    unitPrice: document.getElementById('editUnitPrice').value,
+                    lowStockThreshold: document.getElementById('editLowStockLevel').value
+                })
+            });
+            alert(data.message);
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editMedicineModal')).hide();
+                loadInventory();
+            }
+        }
+        
+        async function deleteMedicine(id) {
+            if (!confirm('Are you sure you want to delete this medicine?')) return;
+            const data = await callApi(`medicines?action=delete&id=${id}`);
+            alert(data.message);
+            if (data.success) loadInventory();
+        }
+        
+        async function loadSales() {
+            const page = window.salesPage || 1;
+            const data = await callApi(`sales?action=getAll&page=${page}`);
+            if (!data.success) return;
+            
+            let html = '';
+            data.data.sales.forEach(s => {
+                const date = s.saleDate ? new Date(s.saleDate).toLocaleString() : 'N/A';
+                html += `<tr>
+                    <td>${date}</td>
+                    <td>${s.medicineName}</td>
+                    <td>${s.qtySold}</td>
+                    <td>${formatUGX(s.totalPrice)}</td>
+                    <td>${formatUGX(s.profit)}</td>
+                    <td>${s.paymentMethod}</td>
+                </tr>`;
+            });
+            document.getElementById('salesTable').innerHTML = html || '<tr><td colspan="6" class="text-center text-muted">No sales found</td></tr>';
+            
+            renderPagination('salesPagination', data.data.totalPages, data.data.currentPage, 'sales');
+        }
+        
+        document.getElementById('inventorySearch')?.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                window.inventoryPage = 1;
+                loadInventory();
+            }
+        });
+        
+        function showAlerts() {
+            showSection('dashboard');
+        }
+        
+        loadDashboard();
+    </script>
+</body>
+</html>
