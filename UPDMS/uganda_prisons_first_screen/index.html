@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1383,32 +1383,13 @@ function showTab(tab){
 </body>
 </html>
 <script>
-// VISITOR NAVIGATION
 function navigateToVisitor(type){
-  var titles = {
-    regular: 'Regular Visitor Registration',
-    inmate: 'Visit an Inmate',
-    hospital: 'Hospital/Medical Services',
-    general: 'General/Business Inquiries'
+  var links = {
+    regular: '../pages/gate/kiosk.php',
+    inmate: '../visiting_inmate/',
+    hospital: '../hospital-side/',
+    general: '../anpr camera/'
   };
-  var descs = {
-    regular: 'Register for regular prison visits. You will need a valid ID and inmate details.',
-    inmate: 'Book an appointment to visit a specific inmate.',
-    hospital: 'Request medical services for an inmate.',
-    general: 'Official business with Uganda Prisons Service.'
-  };
-  toast('Selected: ' + (titles[type] || type));
-  var modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  modal.innerHTML = '<div style="background:#fff;border-radius:20px;padding:40px;max-width:500px;width:100%;text-align:center;animation:fadeInUp .4s ease-out;">' +
-    '<div style="font-size:4rem;margin-bottom:20px;"></div>' +
-    '<h2 style="color:#800000;margin-bottom:15px;font-family:Merriweather,serif;">' + (titles[type] || type) + '</h2>' +
-    '<p style="color:#666;margin-bottom:30px;line-height:1.7;">' + (descs[type] || '') + '</p>' +
-    '<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;">' +
-    '<button onclick="this.closest(\'div\').remove();toast(\'Continue with \'+\'' + type + '\')" style="background:linear-gradient(135deg,#800000,#600000);color:#fff;border:none;padding:14px 30px;border-radius:50px;font-weight:700;cursor:pointer;">Continue</button>' +
-    '<button onclick="this.closest(\'div\').remove()" style="background:#f0f0f0;color:#333;border:none;padding:14px 30px;border-radius:50px;font-weight:700;cursor:pointer;">Cancel</button>' +
-    '</div></div>';
-  document.body.appendChild(modal);
-  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  window.location.href = links[type] || links.regular;
 }
 </script>
