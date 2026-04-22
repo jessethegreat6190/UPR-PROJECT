@@ -1,14 +1,9 @@
-<?php
-session_start();
-define('SITE_URL', 'http://localhost/UPDMS');
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UPDMS - Uganda Prisons Digital Management System</title>
-    <link rel="stylesheet" href="assets/css/black-white.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -32,7 +27,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             min-height: 100vh;
         }
         
-        /* HEADER */
         .header {
             background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
             color: var(--white);
@@ -76,22 +70,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             border-radius: 20px;
         }
         
-        /* MARQUEE */
-        .marquee {
-            background: var(--gold);
-            color: var(--maroon);
-            padding: 8px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 13px;
-            animation: marquee 20s linear infinite;
-        }
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-        
-        /* HERO */
         .hero {
             background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 40%, #3D0000 100%);
             padding: 80px 5%;
@@ -158,7 +136,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             background: rgba(255,255,255,0.1);
         }
         
-        /* STATS */
         .stats-bar {
             background: var(--white);
             padding: 30px 5%;
@@ -171,11 +148,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             text-align: center;
             padding: 20px;
             border-radius: var(--radius);
-            transition: all 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
         }
         .stat-num {
             font-size: 32px;
@@ -189,7 +161,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             letter-spacing: 1px;
         }
         
-        /* MODULES GRID */
         .modules-section {
             padding: 60px 5%;
         }
@@ -259,7 +230,6 @@ define('SITE_URL', 'http://localhost/UPDMS');
             margin-top: 12px;
         }
         
-        /* FOOTER */
         .footer {
             background: var(--maroon);
             color: var(--white);
@@ -273,23 +243,10 @@ define('SITE_URL', 'http://localhost/UPDMS');
         .footer a {
             color: var(--gold);
         }
-        
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 16px;
-                text-align: center;
-            }
-            .hero h1 {
-                font-size: 24px;
-            }
-        }
     </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="header">
     <div class="header-logo">
         <div class="logo-icon">UP</div>
@@ -301,22 +258,15 @@ define('SITE_URL', 'http://localhost/UPDMS');
     <div class="header-clock" id="clock"></div>
 </header>
 
-<!-- MARQUEE -->
-<div class="marquee">
-    Welcome to Uganda Prisons Digital Management System - An Encounter with Excellence
-</div>
-
-<!-- HERO -->
 <section class="hero">
     <h1>Welcome to <em>UPDMS</em></h1>
     <p>Uganda Prisons Digital Management System - Streamlining prison operations through digital innovation. Select a module below to get started.</p>
     <div class="hero-btns">
-        <a href="pages/visitors/checkin.php" class="btn btn-gold">Start Registration</a>
-        <a href="pages/gate/" class="btn btn-outline">Gate Control</a>
+        <a href="#" class="btn btn-gold">Start Registration</a>
+        <a href="#" class="btn btn-outline">Gate Control</a>
     </div>
 </section>
 
-<!-- STATS -->
 <div class="stats-bar">
     <div class="stat-card">
         <div class="stat-num">1,234</div>
@@ -336,13 +286,11 @@ define('SITE_URL', 'http://localhost/UPDMS');
     </div>
 </div>
 
-<!-- MODULES -->
 <section class="modules-section">
     <h2 class="section-title">Select Module</h2>
     
     <div class="modules-grid">
-        <!-- MAIN REGISTRATION -->
-        <a href="pages/main/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -354,14 +302,11 @@ define('SITE_URL', 'http://localhost/UPDMS');
             <span class="module-badge">Core</span>
         </a>
         
-        <!-- VISITORS -->
-        <a href="pages/visitors/checkin.php" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
             </div>
             <h3>Visitor Management</h3>
@@ -369,8 +314,7 @@ define('SITE_URL', 'http://localhost/UPDMS');
             <span class="module-badge">Popular</span>
         </a>
         
-        <!-- INMATE MANAGEMENT -->
-        <a href="pages/inmate/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -379,25 +323,11 @@ define('SITE_URL', 'http://localhost/UPDMS');
                 </svg>
             </div>
             <h3>Inmate Management</h3>
-            <p>Register inmates with NIN validation, OCR, and face matching. (Node.js Backend)</p>
+            <p>Register inmates with NIN validation, OCR, and face matching.</p>
             <span class="module-badge">NEW</span>
         </a>
         
-        <!-- PRISONERS -->
-        <a href="pages/prisoners/list.php" class="module-card">
-            <div class="module-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <path d="M9 3v18"/>
-                    <path d="M15 3v18"/>
-                </svg>
-            </div>
-            <h3>Prisoners Records</h3>
-            <p>View court dates, warrants, sentences, and remand alerts.</p>
-        </a>
-        
-        <!-- GATE / ANPR -->
-        <a href="pages/gate/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="1" y="3" width="15" height="13"/>
@@ -407,12 +337,11 @@ define('SITE_URL', 'http://localhost/UPDMS');
                 </svg>
             </div>
             <h3>Gate Control & ANPR</h3>
-            <p>Vehicle number plate recognition, parking management, and OCR capture.</p>
+            <p>Vehicle number plate recognition, parking management, and OCR.</p>
             <span class="module-badge">ANPR</span>
         </a>
         
-        <!-- HOSPITAL -->
-        <a href="pages/hospital/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -420,11 +349,9 @@ define('SITE_URL', 'http://localhost/UPDMS');
             </div>
             <h3>Hospital / Medical</h3>
             <p>Medical services, inmate health records, and hospital admissions.</p>
-            <span class="module-badge">Medical</span>
         </a>
         
-        <!-- GENERAL VISITS -->
-        <a href="pages/general/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -435,36 +362,18 @@ define('SITE_URL', 'http://localhost/UPDMS');
             <p>Manage general visitor records with database layer integration.</p>
         </a>
         
-        <!-- STAFF -->
-        <a href="pages/staff/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
             </div>
             <h3>Staff Portal</h3>
             <p>Staff management, schedules, and duty rosters.</p>
         </a>
         
-        <!-- VEHICLE -->
-        <a href="pages/vehicle/" class="module-card">
-            <div class="module-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="1" y="1" width="15" height="10"/>
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-                    <circle cx="5.5" cy="18" r="2.5"/>
-                    <circle cx="18.5" cy="18" r="2.5"/>
-                </svg>
-            </div>
-            <h3>Vehicle Tracking</h3>
-            <p>Track all vehicles entering and exiting the facility.</p>
-        </a>
-        
-        <!-- HQ / REPORTS -->
-        <a href="pages/hq/dashboard.php" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 20V10"/>
@@ -476,12 +385,10 @@ define('SITE_URL', 'http://localhost/UPDMS');
             <p>Headquarters dashboard, analytics, and reports.</p>
         </a>
         
-        <!-- ADMIN -->
-        <a href="pages/admin/" class="module-card">
+        <a href="#" class="module-card">
             <div class="module-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
             </div>
             <h3>Administration</h3>
@@ -490,12 +397,11 @@ define('SITE_URL', 'http://localhost/UPDMS');
     </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="footer">
-    <p>&copy; <?php echo date('Y'); ?> Uganda Prisons Service - Digital Management System</p>
+    <p>&copy; 2025 Uganda Prisons Service - Digital Management System</p>
     <p style="margin-top: 8px;">
-        <a href="pages/login.php">Staff Login</a> | 
-        <a href="setup.php">Setup Database</a>
+        <a href="#">Staff Login</a> | 
+        <a href="#">Setup Database</a>
     </p>
 </footer>
 
