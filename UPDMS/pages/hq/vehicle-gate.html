@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPDMS — Vehicle Gate</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--nk:#0D1F3C;--nb:#1B3A6B;--nl:#E8EEF7;--gd:#C8960C;--gb:#D4A017;--bg:#F0F4FA;--wh:#fff;--sl:#F1F5F9;--s2:#E2E8F0;--mu:#94A3B8;--tx:#1A1A2E;--t2:#4A5568;--gn:#1A7A4A;--gl2:#E8F5EE;--rd:#C0392B;--rl:#FEE8E6;--am:#C8750C;--al:#FEF3E2;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);}
+h1,h2,h3{font-family:'Syne',sans-serif;}
+.topbar{background:var(--nk);border-bottom:3px solid var(--gb);height:58px;display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.3);}
+.tb-logo{width:34px;height:34px;border-radius:50%;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.tb-brand .t1{font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#fff;letter-spacing:.4px;}
+.tb-brand .t2{font-size:9px;color:#FCD9BD;}
+.tb-nav{display:flex;gap:3px;margin-left:14px;}
+.tn{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;color:#FCD9BD;background:transparent;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.tn:hover{background:rgba(255,255,255,.1);color:#fff;}
+.tn.on{background:var(--gb);color:#fff;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.dot{width:7px;height:7px;border-radius:50%;background:#22C55E;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clock{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gb);}
+
+.main{display:grid;grid-template-columns:1fr 420px;gap:16px;padding:16px;max-width:1300px;margin:0 auto;}
+.panel{background:var(--wh);border-radius:var(--r);border:1px solid var(--s2);box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.ph{padding:13px 18px;border-bottom:1px solid var(--s2);display:flex;align-items:center;justify-content:space-between;}
+.ph h2{font-size:14px;font-weight:800;color:var(--nb);}
+.pb{padding:16px;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px;}
+.sc{background:var(--sl);border-radius:9px;padding:11px;text-align:center;}
+.sc .n{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--nb);}
+.sc .l{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+.sc.red .n{color:var(--rd);} .sc.amb .n{color:var(--am);} .sc.grn .n{color:var(--gn);}
+
+/* ENTRY CARDS */
+.ec{border:1px solid var(--s2);border-radius:9px;margin-bottom:9px;overflow:hidden;transition:border-color .2s;}
+.ec:hover{border-color:var(--nb);}
+.ec.flagged{border-color:var(--rd);background:var(--rl);}
+.ec.long{border-color:var(--am);}
+.ech{padding:9px 13px;display:flex;align-items:center;gap:9px;background:var(--sl);}
+.ec.flagged .ech{background:#FECACA;}
+.plate{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;background:var(--gb);color:var(--nk);padding:3px 10px;border-radius:5px;letter-spacing:.4px;flex-shrink:0;}
+.ec.flagged .plate{background:var(--rd);color:#fff;}
+.em{flex:1;min-width:0;}
+.em .en{font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.em .et{font-size:10px;color:var(--mu);margin-top:1px;}
+.eacts{display:flex;gap:5px;flex-shrink:0;}
+.btn{padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .15s;}
+.btn.ap{background:var(--gn);color:#fff;}
+.btn.ex{background:var(--nb);color:#fff;}
+.btn.vw{background:var(--sl);color:var(--t2);border:1px solid var(--s2);}
+.btn.rj{background:var(--rd);color:#fff;}
+.ecb{padding:9px 13px;font-size:11px;color:var(--t2);display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;}
+.lbl{color:var(--mu);font-size:10px;}
+.bd{display:inline-block;font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;}
+.b-g{background:var(--gl2);color:var(--gn);} .b-r{background:var(--rl);color:var(--rd);} .b-a{background:var(--al);color:var(--am);} .b-n{background:var(--nl);color:var(--nb);}
+
+/* ALERT BANNER */
+.ab{background:var(--rd);color:#fff;padding:11px 16px;border-radius:9px;margin-bottom:12px;display:none;align-items:center;gap:10px;animation:fi .3s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.ab-plate{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:#fff;color:var(--rd);padding:3px 10px;border-radius:5px;}
+.ab-msg{flex:1;}
+.ab-title{font-size:13px;font-weight:700;}
+.ab-reason{font-size:11px;opacity:.9;}
+
+/* RIGHT PANEL */
+.rp{display:flex;flex-direction:column;gap:13px;}
+
+/* PLATE INPUT */
+.plate-input-box{background:var(--nk);border-radius:var(--r);padding:16px;border:1px solid rgba(255,255,255,.08);}
+.plate-input-box h3{font-size:12px;font-weight:700;color:#fff;letter-spacing:.3px;margin-bottom:12px;}
+.plate-screen{background:#000;border-radius:9px;min-height:100px;display:flex;align-items:center;justify-content:center;padding:14px;margin-bottom:12px;}
+.plate-idle{color:#555;font-size:12px;text-align:center;}
+.plate-live{width:100%;}
+.plate-txt{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:#22C55E;text-align:center;letter-spacing:2px;}
+.plate-txt.danger{color:#EF4444;}
+.plate-conf{text-align:center;font-size:10px;color:#888;margin-top:3px;}
+.plate-vehicle{text-align:center;font-size:11px;color:#aaa;margin-top:5px;}
+
+/* MANUAL PLATE INPUT */
+.manual-input{display:flex;gap:6px;margin-bottom:10px;}
+.manual-input input{flex:1;padding:9px 12px;background:#1a1a2e;border:1.5px solid #333;border-radius:8px;color:#fff;font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;}
+.manual-input input:focus{border-color:var(--gb);}
+.manual-input input::placeholder{color:#555;font-size:13px;letter-spacing:0;font-family:'DM Sans',sans-serif;font-weight:400;}
+.manual-input button{padding:9px 16px;background:var(--gb);color:var(--nk);border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* SIM BTNS */
+.sim-note{font-size:10px;color:#666;text-align:center;margin-bottom:6px;}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.sb{padding:6px 4px;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;border:1px solid;text-align:center;transition:all .15s;}
+.sb.cl{background:rgba(26,122,74,.15);border-color:#1A7A4A;color:#22C55E;}
+.sb.dn{background:rgba(192,57,43,.15);border-color:#C0392B;color:#EF4444;}
+.sb.uk{background:rgba(148,163,184,.1);border-color:#555;color:#888;}
+
+/* REG FORM */
+.rf{background:var(--wh);border-radius:var(--r);border:1px solid var(--s2);padding:14px;}
+.rf h3{font-size:12px;font-weight:700;color:var(--nb);margin-bottom:11px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.fg{display:flex;flex-direction:column;gap:2px;}
+.fg label{font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;}
+.fg input,.fg select,.fg textarea{padding:7px 9px;border:1.5px solid var(--s2);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--tx);outline:none;transition:border .15s;}
+.fg input:focus,.fg select:focus{border-color:var(--nb);}
+.fg select{background:#fff;}
+.dest-row{background:var(--nl);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.dest-row h4{font-size:10px;font-weight:700;color:var(--nb);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px;}
+.chk-list{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0;}
+.ck{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2);}
+.ck input{accent-color:var(--nb);}
+.sub-row{display:flex;gap:7px;margin-top:9px;}
+.bf{flex:1;padding:9px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;}
+.bf.ap{background:var(--gn);color:#fff;}
+.bf.rj{background:var(--rd);color:#fff;}
+.lock-note{font-size:9px;color:var(--mu);margin-top:5px;text-align:center;}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:#fff;border-radius:var(--r);padding:20px;max-width:460px;width:92%;max-height:88vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:800;color:var(--nb);margin-bottom:13px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:16px;right:16px;background:var(--nk);color:#fff;padding:10px 16px;border-radius:9px;font-size:12px;z-index:2000;display:none;border-left:4px solid var(--gb);}
+.toast.show{display:block;}
+
+@media(max-width:900px){.main{grid-template-columns:1fr;}.stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="tb-logo">&#128664;</div>
+  <div class="tb-brand">
+    <div class="t1">UPDMS — Vehicle Gate</div>
+    <div class="t2">Uganda Prisons Digital Management System</div>
+  </div>
+  <nav class="tb-nav">
+    <button class="tn on" onclick="location.href='vehicle_gate.html'">&#128664; Gate</button>
+    <button class="tn" onclick="location.href='housing.html'">&#127968; Housing</button>
+    <button class="tn" onclick="location.href='proposal.html'">&#128203; Proposal</button>
+  </nav>
+  <div class="tb-right">
+    <div class="dot"></div>
+    <div class="clock" id="clk">00:00</div>
+    <span style="font-size:10px;color:#FCD9BD;background:rgba(255,255,255,.1);padding:4px 10px;border-radius:20px;">SGT. OKELLO — Gate 1</span>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT: LIVE LOG -->
+  <div>
+    <div class="ab" id="ab">
+      <div style="font-size:18px;">&#9888;</div>
+      <div class="ab-msg"><div class="ab-title">BLACKLISTED VEHICLE</div><div class="ab-reason" id="ab-reason">Do not open gate</div></div>
+      <div class="ab-plate" id="ab-plate">—</div>
+      <button class="btn rj" onclick="document.getElementById('ab').style.display='none'">Dismiss</button>
+    </div>
+    <div class="panel">
+      <div class="ph"><h2>&#128664; Live Vehicle Log</h2>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <span style="font-size:10px;color:var(--mu);" id="last-upd">—</span>
+          <button class="btn vw" onclick="loadEntries()">&#8635;</button>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="stats">
+          <div class="sc"><div class="n" id="s-site">0</div><div class="l">On Site</div></div>
+          <div class="sc amb"><div class="n" id="s-pend">0</div><div class="l">Pending</div></div>
+          <div class="sc red"><div class="n" id="s-flag">0</div><div class="l">Flagged</div></div>
+          <div class="sc grn"><div class="n" id="s-tot">0</div><div class="l">Today</div></div>
+        </div>
+        <div id="entry-list"><div style="text-align:center;color:var(--mu);padding:24px;font-size:12px;">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: INPUT + FORM -->
+  <div class="rp">
+
+    <!-- PLATE ENTRY -->
+    <div class="plate-input-box">
+      <h3>&#128663; Plate Entry</h3>
+      <div class="plate-screen" id="plate-screen">
+        <div class="plate-idle" id="pl-idle">&#128663; Type plate below or use simulate buttons</div>
+        <div class="plate-live" id="pl-live" style="display:none;">
+          <div class="plate-txt" id="pl-txt">—</div>
+          <div class="plate-conf" id="pl-conf">—</div>
+          <div class="plate-vehicle" id="pl-veh">—</div>
+        </div>
+      </div>
+      <!-- MANUAL INPUT (no Pi) -->
+      <div class="manual-input">
+        <input type="text" id="manual-plate" placeholder="Type plate e.g. UAB 123D" maxlength="12"
+               onkeydown="if(event.key==='Enter')manualDetect()">
+        <button onclick="manualDetect()">&#10003; Check</button>
+      </div>
+      <div class="sim-note">— or simulate for testing —</div>
+      <div class="sim-grid">
+        <button class="sb cl" onclick="sim(0)">UAB 123D<br><span style="font-size:8px;">Visitor</span></button>
+        <button class="sb cl" onclick="sim(2)">UAN 456B<br><span style="font-size:8px;">Staff</span></button>
+        <button class="sb cl" onclick="sim(4)">UBB 789C<br><span style="font-size:8px;">Supplier</span></button>
+        <button class="sb dn" onclick="sim(1)">UBF 007X<br><span style="font-size:8px;">BLACKLIST</span></button>
+        <button class="sb dn" onclick="sim(3)">UCC 111A<br><span style="font-size:8px;">FLAGGED</span></button>
+        <button class="sb uk" onclick="sim(5)">UAC 550J<br><span style="font-size:8px;">Unknown</span></button>
+      </div>
+    </div>
+
+    <!-- REGISTRATION FORM -->
+    <div class="rf" id="reg-form">
+      <h3>&#128203; Register — <span id="fp" style="color:var(--gb);">Awaiting plate</span></h3>
+      <input type="hidden" id="eid">
+
+      <div class="fr">
+        <div class="fg"><label>Driver Name *</label><input id="f-name" placeholder="Full name of driver"></div>
+        <div class="fg"><label>National ID *</label><input id="f-nid" placeholder="CM9010..."></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Purpose *</label>
+          <select id="f-purpose" onchange="toggleDestType()">
+            <option value="">Select...</option>
+            <option value="Personal Visit — Staff Quarters">Visit Staff Quarters</option>
+            <option value="Official Business">Official Business</option>
+            <option value="Delivery / Supplies">Delivery / Supplies</option>
+            <option value="Medical / Hospital">Medical / Hospital</option>
+            <option value="Legal — Lawyer">Legal Visit</option>
+            <option value="NGO / Organisation">NGO / Organisation</option>
+            <option value="Inmate Visit">Inmate Visit</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg"><label>Contact Phone</label><input id="f-phone" placeholder="+256 77..."></div>
+      </div>
+
+      <!-- DESTINATION — Housing -->
+      <div class="dest-row" id="dest-housing" style="display:none;">
+        <h4>&#127968; Destination — Staff Quarters</h4>
+        <div class="fr">
+          <div class="fg"><label>Quarter *</label>
+            <select id="d-quarter" onchange="loadDestHouses(this.value)">
+              <option value="">Select quarter...</option>
+            </select>
+          </div>
+          <div class="fg"><label>House Number *</label>
+            <select id="d-house"><option value="">Select house...</option></select>
+          </div>
+        </div>
+        <div class="fg"><label>Host Name (staff being visited)</label>
+          <input id="d-host" placeholder="Name of staff member living there">
+        </div>
+      </div>
+
+      <!-- DESTINATION — General -->
+      <div class="fr" id="dest-general">
+        <div class="fg"><label>Person / Block Being Visited</label>
+          <input id="f-person" placeholder="Name + location / block"></div>
+        <div class="fg"><label>Destination / Location</label>
+          <input id="f-dest" placeholder="e.g. Admin Block, Hospital Wing"></div>
+      </div>
+
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Items Being Brought In</div>
+      <div class="chk-list">
+        <div class="ck"><input type="checkbox" id="i-bag"><label for="i-bag">Bag</label></div>
+        <div class="ck"><input type="checkbox" id="i-food"><label for="i-food">Food</label></div>
+        <div class="ck"><input type="checkbox" id="i-elec"><label for="i-elec">Electronics</label></div>
+        <div class="ck"><input type="checkbox" id="i-docs"><label for="i-docs">Documents</label></div>
+        <div class="ck"><input type="checkbox" id="i-tools"><label for="i-tools">Tools</label></div>
+      </div>
+      <div class="fg" style="margin-top:5px;"><label>Guard Notes</label>
+        <textarea id="f-notes" rows="2" placeholder="Optional notes — locked with record..."></textarea>
+      </div>
+      <div class="sub-row">
+        <button class="bf ap" onclick="approve()">&#9989; Approve &amp; Open Gate</button>
+        <button class="bf rj" onclick="reject()">&#10006; Reject</button>
+      </div>
+      <div class="lock-note">&#128274; Record locked permanently on submit</div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="ov" id="mov">
+  <div class="modal">
+    <h3>&#128664; Entry Detail</h3>
+    <div id="mbd"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn vw" onclick="document.getElementById('mov').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '../../api/gate-api.php';
+let locationsData = [];
+
+// CLOCK
+setInterval(() => {
+  document.getElementById('clk').textContent =
+    new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+// TOAST
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderLeftColor = type==='error'?'#C0392B':type==='success'?'#1A7A4A':'#D4A017';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// LOAD HOUSING LOCATIONS for destination dropdowns
+function loadLocations() {
+  fetch(API+'?action=locations').then(r=>r.json()).then(data => {
+    locationsData = data;
+    const sel = document.getElementById('d-quarter');
+    sel.innerHTML = '<option value="">Select quarter...</option>' +
+      data.map(q => `<option value="${q.id}">${q.name} — ${q.block||'—'}</option>`).join('');
+  }).catch(() => {});
+}
+
+function loadDestHouses(qid) {
+  const sel = document.getElementById('d-house');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  const q = locationsData.find(x => x.id == qid);
+  if (!q || !q.houses) { sel.innerHTML='<option value="">No houses found</option>'; return; }
+  const houses = q.houses.split('|').map(h => {
+    const [id, num, status] = h.split(':');
+    return {id, num, status};
+  });
+  sel.innerHTML = '<option value="">Select house...</option>' +
+    houses.map(h => `<option value="${h.num}" ${h.status==='vacant'?'':''}>${h.num} ${h.status==='occupied'?'(Occupied)':h.status==='maintenance'?'(Maintenance)':'(Vacant)'}</option>`).join('');
+}
+
+function toggleDestType() {
+  const v = document.getElementById('f-purpose').value;
+  const isHousing = v === 'Personal Visit — Staff Quarters';
+  document.getElementById('dest-housing').style.display = isHousing ? 'block' : 'none';
+  document.getElementById('dest-general').style.display = isHousing ? 'none' : 'grid';
+}
+
+// MANUAL PLATE ENTRY (no Pi)
+function manualDetect() {
+  const plate = document.getElementById('manual-plate').value.trim().toUpperCase();
+  if (!plate) { toast('Enter a plate number', 'error'); return; }
+  fetch(`${API}?action=detect&plate=${encodeURIComponent(plate)}&confidence=100&gate=Main Gate`)
+    .then(r=>r.json()).then(d => handleDetection(d))
+    .catch(() => toast('Server not responding. Check XAMPP.', 'error'));
+}
+
+// SIMULATE (test buttons)
+function sim(idx) {
+  fetch(`${API}?action=simulate&plate_index=${idx}`)
+    .then(r=>r.json()).then(d => handleDetection(d))
+    .catch(() => toast('Server not responding. Check XAMPP.', 'error'));
+}
+
+function handleDetection(data) {
+  if (data.error) { toast(data.error, 'error'); return; }
+
+  document.getElementById('pl-idle').style.display = 'none';
+  document.getElementById('pl-live').style.display = 'block';
+  const pt = document.getElementById('pl-txt');
+  pt.textContent = data.plate;
+  pt.className = 'plate-txt' + (data.flagged ? ' danger' : '');
+  document.getElementById('pl-conf').textContent = 'Confidence: ' + parseFloat(data.confidence).toFixed(1) + '%';
+  document.getElementById('pl-veh').textContent = (data.make||'Unknown') + ' · ' + (data.colour||'Unknown') + ' · ' + (data.category||'visitor');
+
+  if (data.flagged) {
+    const ab = document.getElementById('ab');
+    ab.style.display = 'flex';
+    document.getElementById('ab-plate').textContent = data.plate;
+    document.getElementById('ab-reason').textContent = data.flag_reason || 'Security alert';
+    document.body.style.background = '#FEE8E6';
+    setTimeout(() => document.body.style.background = '', 1500);
+    toast('BLACKLISTED: ' + data.plate, 'error');
+  } else {
+    document.getElementById('ab').style.display = 'none';
+    toast('Plate: ' + data.plate + (data.known ? ' — Known vehicle' : ' — Unknown'), data.known?'success':'info');
+  }
+
+  document.getElementById('eid').value = data.entry_id;
+  document.getElementById('fp').textContent = data.plate;
+  if (data.owner) document.getElementById('f-name').value = data.owner;
+  document.getElementById('manual-plate').value = '';
+  loadEntries();
+}
+
+// LOAD ENTRIES
+function loadEntries() {
+  fetch(`${API}?action=entries&limit=25`)
+    .then(r=>r.json()).then(data => {
+      const c = data.counts || {};
+      document.getElementById('s-site').textContent = c.active  || 0;
+      document.getElementById('s-pend').textContent = c.pending || 0;
+      document.getElementById('s-flag').textContent = c.flagged_today || 0;
+      document.getElementById('s-tot').textContent  = c.total_today  || 0;
+
+      const list = document.getElementById('entry-list');
+      if (!data.entries?.length) {
+        list.innerHTML = '<div style="text-align:center;color:var(--mu);padding:24px;font-size:12px;">No vehicles today yet.</div>';
+        return;
+      }
+      list.innerHTML = data.entries.map(e => {
+        const mins = parseInt(e.minutes_on_site)||0;
+        const dur  = mins>60?Math.floor(mins/60)+'h '+(mins%60)+'m':mins+'m';
+        const sb   = e.status==='active'?'b-g':e.status==='pending'?'b-a':e.status==='exited'?'b-n':'b-r';
+        const dest = e.destination_quarter ? `${e.destination_quarter} / ${e.destination_house||'—'}` : (e.person_visiting||'—');
+        return `<div class="ec ${e.flagged?'flagged':''} ${e.long_stay?'long':''}">
+          <div class="ech">
+            <div class="plate">${e.plate}</div>
+            <div class="em">
+              <div class="en">${e.driver_name||e.make||'Not registered'}</div>
+              <div class="et">${ft(e.entry_time)} &bull; ${dur} &bull; ${e.gate||'Main Gate'}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="bd ${sb}">${e.status}</span>
+              ${e.flagged?'<span class="bd b-r">Alert</span>':''}
+            </div>
+            <div class="eacts">
+              ${e.status==='pending'?`<button class="btn ap" onclick="quickApprove(${e.id})">OK</button>`:''}
+              ${e.status==='active'?`<button class="btn ex" onclick="markExit(${e.id},'${e.plate}')">Exit</button>`:''}
+              <button class="btn vw" onclick="viewEntry(${e.id})">&#128065;</button>
+            </div>
+          </div>
+          ${e.driver_name?`<div class="ecb">
+            <span><span class="lbl">Driver:</span> ${e.driver_name}</span>
+            <span><span class="lbl">Purpose:</span> ${e.purpose||'—'}</span>
+            <span><span class="lbl">Destination:</span> ${dest}</span>
+            <span><span class="lbl">Confidence:</span> ${e.confidence?parseFloat(e.confidence).toFixed(1)+'%':'—'}</span>
+          </div>`:''}
+          ${e.flagged?`<div style="padding:5px 13px;font-size:10px;font-weight:700;color:var(--rd);">&#9888; ${e.flag_reason||'Blacklisted'}</div>`:''}
+        </div>`;
+      }).join('');
+      document.getElementById('last-upd').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    })
+    .catch(() => {
+      document.getElementById('entry-list').innerHTML =
+        '<div style="color:var(--rd);padding:16px;text-align:center;font-size:12px;">&#9888; Cannot reach server.<br>Start XAMPP Apache + MySQL.</div>';
+    });
+}
+
+function quickApprove(id) {
+  fetch(API+'?action=approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entry_id:id,guard_id:'SGT. OKELLO'})})
+    .then(r=>r.json()).then(d=>{ toast('Approved','success'); loadEntries(); });
+}
+function markExit(id, plate) {
+  if (!confirm('Confirm exit for '+plate+'?')) return;
+  fetch(API+'?action=exit&id='+id).then(r=>r.json()).then(()=>{toast('Exit: '+plate,'success');loadEntries();});
+}
+
+// APPROVE
+function approve() {
+  const id = document.getElementById('eid').value;
+  if (!id) { toast('No plate detected yet', 'error'); return; }
+  const items = [];
+  ['i-bag','i-food','i-elec','i-docs','i-tools'].forEach(x=>{ if(document.getElementById(x).checked) items.push(x.replace('i-','')); });
+  const isHousing = document.getElementById('f-purpose').value === 'Personal Visit — Staff Quarters';
+  const payload = {
+    entry_id:       parseInt(id),
+    driver_name:    document.getElementById('f-name').value,
+    driver_nid:     document.getElementById('f-nid').value,
+    purpose:        document.getElementById('f-purpose').value,
+    person_visiting:document.getElementById('f-person').value,
+    destination_quarter: isHousing ? document.getElementById('d-quarter').options[document.getElementById('d-quarter').selectedIndex]?.text : '',
+    destination_house:   isHousing ? document.getElementById('d-house').value : '',
+    phone:          document.getElementById('f-phone').value,
+    items_declared: items.join(', '),
+    guard_id:       'SGT. OKELLO',
+    notes:          document.getElementById('f-notes').value,
+  };
+  fetch(API+'?action=approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(r=>r.json()).then(d=>{
+      if(d.success){ toast('Approved. Gate can open.','success'); resetForm(); loadEntries(); }
+      else toast(d.error||'Error','error');
+    });
+}
+function reject() { toast('Entry rejected','error'); resetForm(); }
+
+function resetForm() {
+  ['eid','f-name','f-nid','f-phone','f-notes','f-person','f-dest','d-host'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-purpose').value='';
+  document.getElementById('fp').textContent='Awaiting plate';
+  document.getElementById('pl-idle').style.display='flex';
+  document.getElementById('pl-live').style.display='none';
+  document.getElementById('dest-housing').style.display='none';
+  document.getElementById('dest-general').style.display='grid';
+  ['i-bag','i-food','i-elec','i-docs','i-tools'].forEach(id=>document.getElementById(id).checked=false);
+}
+
+// VIEW ENTRY
+function viewEntry(id) {
+  fetch(API+'?action=entries&limit=100').then(r=>r.json()).then(data=>{
+    const e=data.entries.find(x=>x.id==id);if(!e)return;
+    const dest = e.destination_quarter ? `${e.destination_quarter} — House ${e.destination_house||'—'}` : (e.person_visiting||'—');
+    document.getElementById('mbd').innerHTML=`<table style="width:100%;font-size:12px;border-collapse:collapse;">
+      ${mrow('Plate','<strong style="font-size:15px;font-family:Syne,sans-serif;">'+e.plate+'</strong>')}
+      ${mrow('Vehicle',(e.make||'—')+' / '+(e.colour||'—'))}
+      ${mrow('Confidence',e.confidence?parseFloat(e.confidence).toFixed(1)+'%':'—')}
+      ${mrow('Driver',e.driver_name||'—')}
+      ${mrow('National ID',e.driver_nid||'—')}
+      ${mrow('Purpose',e.purpose||'—')}
+      ${mrow('Destination',dest)}
+      ${mrow('Phone',e.phone||'—')}
+      ${mrow('Items',e.items_declared||'—')}
+      ${mrow('Guard',e.guard_id||'—')}
+      ${mrow('Entry',ft(e.entry_time))}
+      ${mrow('Exit',e.exit_time?ft(e.exit_time):'Still on site')}
+      ${e.flagged?mrow('ALERT','<span style="color:#C0392B;font-weight:700;">'+e.flag_reason+'</span>'):''}
+    </table>`;
+    document.getElementById('mov').classList.add('open');
+  });
+}
+function mrow(k,v){return `<tr style="border-bottom:1px solid #F1F5F9;"><td style="padding:6px 0;color:#94A3B8;font-size:10px;text-transform:uppercase;letter-spacing:.4px;width:34%;">${k}</td><td style="padding:6px 0;">${v}</td></tr>`;}
+function ft(d){if(!d)return'—';const x=new Date(d);return x.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+' · '+x.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});}
+
+// INIT
+loadEntries();
+loadLocations();
+setInterval(loadEntries, 8000);
+</script>
+</body>
+</html>
