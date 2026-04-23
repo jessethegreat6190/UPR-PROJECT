@@ -663,17 +663,17 @@ nav,.nav-cta,.hbg,.scroll-top,.particles{display:none!important;}
       <button class="back-btn" onclick="goBackToScreensaver()">← Back</button>
       <h2 class="visit-heading">What is the purpose of your visit?</h2>
       <div class="visit-options">
-        <div class="visit-card">
+        <div class="visit-card" onclick="goToURL('General_visits/')">
           <span class="visit-icon">👤</span>
-          <span class="visit-label">Regular Visitor</span>
-          <span class="visit-desc">Register for regular visits</span>
+          <span class="visit-label">General Visits</span>
+          <span class="visit-desc">Register for general visits</span>
         </div>
-        <div class="visit-card">
+        <div class="visit-card" onclick="goToURL('pages/visitor/')">
           <span class="visit-icon">👥</span>
           <span class="visit-label">Visit an Inmate</span>
           <span class="visit-desc">Book appointment with inmate</span>
         </div>
-        <div class="visit-card">
+        <div class="visit-card" onclick="goToURL('hospital-side/')">
           <span class="visit-icon">🏥</span>
           <span class="visit-label">Hospital</span>
           <span class="visit-desc">Medical visit requests</span>
@@ -1260,6 +1260,10 @@ function go(page){
   document.getElementById('page-'+page).classList.add('active');
   document.getElementById('nav-'+page)?.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goToURL(url){
+  window.location.href = url;
 }
 
 function toggleMenu(){
