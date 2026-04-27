@@ -1,0 +1,161 @@
+:root {
+    --primary: #0d6efd;
+    --success: #198754;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #0dcaf0;
+}
+
+body {
+    font-size: 14px;
+}
+
+.main-content {
+    min-height: calc(100vh - 56px);
+    padding-top: 20px !important;
+}
+
+.sidebar {
+    min-height: calc(100vh - 56px);
+    border-right: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.sidebar .nav-link {
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: 2px 10px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #e9ecef;
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.sidebar .nav-link[data-bs-toggle="collapse"] {
+    font-weight: 500;
+}
+
+.sidebar .nav.flex-column.ms-4 .nav-link {
+    font-size: 13px;
+    padding: 8px 15px;
+    margin: 1px 0;
+}
+
+.stat-card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-body {
+    padding: 20px;
+}
+
+.card {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+}
+
+.table {
+    font-size: 13px;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #666;
+}
+
+.btn {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.badge {
+    padding: 5px 10px;
+    font-weight: 500;
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .main-content {
+        padding-top: 10px !important;
+    }
+}
+
+.visitor-type-inmate { background-color: #0d6efd; }
+.visitor-type-hospital { background-color: #20c997; }
+.visitor-type-staff { background-color: #6c757d; }
+.visitor-type-official { background-color: #6610f2; }
+.visitor-type-delivery { background-color: #fd7e14; }
+
+.touch-btn {
+    min-height: 48px;
+    font-size: 16px;
+}
+
+.gate-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+}
+
+.gate-panel.success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.gate-panel.danger {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+}
+
+.search-highlight {
+    background-color: #fff3cd;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.record-locked {
+    border-left: 4px solid var(--danger);
+    background-color: #fff8f8;
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>UPS — Hospital Registration</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/globals.css">
+  <script src="assets/js/registration.js"></script>
+  <style>
+  body { background: var(--prison-light); padding: 0; }
+  .page-header { background: var(--prison-maroon); color: #fff; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); }
+  .page-header h1 { color: var(--prison-gold); font-size: 1.5rem; margin: 0; }
+  
+  .main-layout { display: flex; min-height: calc(100vh - 90px); }
+  .content-area { flex: 1; padding: 40px 5%; max-width: 1000px; margin: 0 auto; }
+  .side-panel { width: 300px; background: rgba(128,0,0,0.1); padding: 20px; border-left: 1px solid rgba(255,215,0,0.2); }
+  .side-panel h3 { color: var(--prison-gold); margin-bottom: 15px; font-size: 1rem; }
+.form-card { background: #fff; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.option-button { background: var(--prison-maroon); border: 2px solid var(--prison-gold); padding: 50px 30px; border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: var(--transition); color: #fff; }
+.option-button:hover { background: var(--prison-gold); color: var(--prison-maroon-dark); transform: translateY(-5px); }
+.option-button i { font-size: 3rem; margin-bottom: 20px; }
+.option-button span { display: block; font-size: 1.25rem; font-weight: 800; text-transform: uppercase; }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: var(--prison-maroon-dark); }
+.form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: var(--radius-sm); font-family: var(--font-body); }
+
+.error-msg { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px; font-weight: 600; display: none; }
+
+.ref-box { background: var(--prison-maroon-dark); color: var(--prison-gold); padding: 40px; border-radius: var(--radius-lg); text-align: center; margin-top: 20px; }
+.ref-number { font-family: monospace; font-size: 2.5rem; font-weight: 900; margin: 20px 0; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <img src="uganda_prisons_first_%20screen/ups-logo.png" alt="UPS" style="height: 50px;">
+    <h1>HOSPITAL REGISTRATION</h1>
+  </div>
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <div id="liveClock" class="text-gold" style="font-weight: 700;"></div>
+    <a href="uganda_prisons_first_%20screen/index.html" class="btn btn-primary" style="padding: 8px 16px;">
+      <i class="fas fa-home"></i> Home
+    </a>
+  </div>
+</header>
+
+<main class="main-layout">
+  <div class="content-area">
+  <!-- SELECTION -->
+  <div id="tab-select" class="tab-content active">
+    <div class="option-grid">
+      <div class="option-button" onclick="showForm('community')">
+        <i class="fas fa-user-injured"></i>
+        <span>Community Patient</span>
+        <p style="margin-top: 10px; opacity: 0.8;">Outside visitor / patient</p>
+      </div>
+      <div class="option-button" onclick="showForm('staff')">
+        <i class="fas fa-user-md"></i>
+        <span>Staff Member</span>
+        <p style="margin-top: 10px; opacity: 0.8;">Prison facility staff</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY FORM -->
+  <div id="tab-community" class="tab-content">
+    <div class="form-card">
+      <h2 style="margin-bottom: 30px;">Patient Details</h2>
+      <div id="c-err" class="error-msg">Please fill in all required fields.</div>
+      
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="c-name" placeholder="As on National ID">
+      </div>
+      
+      <div class="form-group">
+        <label>National ID Number *</label>
+        <input type="text" id="c-id" placeholder="e.g. CM9010001234">
+      </div>
+      
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="c-phone" placeholder="e.g. 0771234567">
+      </div>
+      
+      <div class="form-group">
+        <label>Destination Ward *</label>
+        <select id="c-ward">
+          <option>Outpatients (OPD)</option>
+          <option>Accident & Emergency (A&E)</option>
+          <option>Male Ward</option>
+          <option>Female Ward</option>
+          <option>Maternity</option>
+          <option>Paediatrics</option>
+        </select>
+      </div>
+      
+      <div style="display: flex; gap: 15px; margin-top: 30px;">
+        <button class="btn btn-maroon" style="flex: 1;" onclick="submitCommunity()">Register & Get Reference</button>
+        <button class="btn" style="background: #eee;" onclick="showSelect()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAFF FORM -->
+  <div id="tab-staff" class="tab-content">
+    <div class="form-card">
+      <h2 style="margin-bottom: 30px;">Staff Sign-In</h2>
+      <div id="s-err" class="error-msg">Staff ID not recognized. (Try STF-D001)</div>
+      
+      <div class="form-group">
+        <label>Staff ID Number *</label>
+        <input type="text" id="staff-id" placeholder="e.g. STF-D001">
+      </div>
+      
+      <div style="display: flex; gap: 15px; margin-top: 30px;">
+        <button class="btn btn-maroon" style="flex: 1;" onclick="submitStaff()">Sign In</button>
+        <button class="btn" style="background: #eee;" onclick="showSelect()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRMATION -->
+  <div id="tab-confirm" class="tab-content">
+    <div class="ref-box">
+      <i class="fas fa-check-circle" style="font-size: 4rem; margin-bottom: 20px;"></i>
+      <h2>REGISTRATION SUCCESSFUL</h2>
+      <p style="margin-top: 10px; opacity: 0.8;">Your reference number is:</p>
+      <div id="ref-display" class="ref-number"></div>
+      <p style="margin-top: 20px; font-weight: 600;">Please present this number to the guard at the station.</p>
+      
+      <button class="btn btn-primary" style="margin-top: 40px; padding: 15px 40px;" onclick="showSelect()">Done</button>
+    </div>
+  </div>
+  <!-- Active Registrations Panel -->
+  <div class="side-panel">
+    <h3><i class="fas fa-users"></i> Active Visits</h3>
+    <div id="active-panel" data-auto-refresh="false"></div>
+  </div>
+</main>
+
+<script src="assets/js/app-core.js"></script>
+<script src="assets/js/registration.js"></script>
+<script>
+const DEMO = {
+  "STF-D001": {name: "Dr. Sarah Nakato", dept: "Internal Medicine"},
+  "STF-N001": {name: "Nurse Joyce Akello", dept: "ICU"}
+};
+
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'confirm') renderActivePanel('active-panel');
+}
+
+function showSelect() { showTab('select'); }
+function showForm(type) { showTab(type); }
+
+function genRef() {
+  const n = new Date();
+  const dateStr = n.getFullYear() + String(n.getMonth() + 1).padStart(2, '0') + String(n.getDate()).padStart(2, '0');
+  return dateStr + '-' + Math.floor(Math.random() * 9000 + 1000);
+}
+
+function submitCommunity() {
+  const name = document.getElementById('c-name').value.trim();
+  const id = document.getElementById('c-id').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
+  
+  if (!name || !id || !phone) {
+    document.getElementById('c-err').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('c-err').style.display = 'none';
+  const ref = 'HOS-' + genRef();
+  
+  // Register in tracking system
+  UPS_REG.signIn({ ref, name, phone, module: 'hospital', destination: document.getElementById('c-ward').value });
+  
+  document.getElementById('ref-display').innerText = ref;
+  renderActivePanel('active-panel');
+  showTab('confirm');
+}
+
+function submitStaff() {
+  const id = document.getElementById('staff-id').value.trim().toUpperCase();
+  if (!DEMO[id]) {
+    document.getElementById('s-err').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('s-err').style.display = 'none';
+  const ref = 'STF-' + genRef();
+  const staff = DEMO[id];
+  
+  // Register in tracking system
+  UPS_REG.signIn({ ref, name: staff.name, phone: '', module: 'hospital', destination: staff.dept });
+  
+  document.getElementById('ref-display').innerText = ref;
+  renderActivePanel('active-panel');
+  showTab('confirm');
+}
+
+// Initial render
+document.addEventListener('DOMContentLoaded', () => renderActivePanel('active-panel'));
+</script>
+</body>
+</html>

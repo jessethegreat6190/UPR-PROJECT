@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-Out - Luzira Prison</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .checkout-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .checkout-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .search-box {
+            margin-bottom: 30px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #000;
+            margin-bottom: 10px;
+        }
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            display: none;
+        }
+        .search-results.show {
+            display: block;
+        }
+        .search-result-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .search-result-item:hover {
+            background: #f5f5f5;
+        }
+        .visitor-info {
+            display: none;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #000;
+            background: #f9f9f9;
+        }
+        .visitor-info.show {
+            display: block;
+        }
+        .visitor-info h3 {
+            margin-bottom: 15px;
+        }
+        .face-capture {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .camera-box {
+            width: 100%;
+            max-width: 320px;
+            height: 240px;
+            margin: 0 auto 20px;
+            border: 2px solid #000;
+            position: relative;
+            background: #000;
+        }
+        .camera-box video,
+        .camera-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            background: #333;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: 2px solid #000;
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #000;
+            color: #fff;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #333;
+        }
+        .btn-success {
+            background: #000;
+            color: #fff;
+        }
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            border: 2px solid #000;
+            background: #fff;
+        }
+        .success-message.show {
+            display: block;
+        }
+        .success-message h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .error-message {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #000;
+            background: #fff;
+            color: #d00;
+        }
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1>LUZIRA PRISON</h1>
+            <p>Visitor Check-Out</p>
+        </div>
+
+        <div id="searchSection">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name or phone number...">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        </div>
+
+        <div class="visitor-info" id="visitorInfo">
+            <h3>Visitor Details</h3>
+            <p><strong>Name:</strong> <span id="visitorName"></span></p>
+            <p><strong>Inmate:</strong> <span id="inmateName"></span></p>
+            <p><strong>Status:</strong> <span id="visitorStatus"></span></p>
+            <p><strong>Registered:</strong> <span id="visitorDate"></span></p>
+        </div>
+
+        <div class="face-capture" id="faceCaptureSection">
+            <h3>Face Verification</h3>
+            <p>Please face the camera for check-out verification</p>
+            
+            <div class="camera-box" id="cameraBox">
+                <video id="videoFace" autoplay playsinline></video>
+                <img id="previewFaceImg" style="display:none;" alt="Preview">
+                <canvas id="canvasFace" style="display:none;"></canvas>
+                <div class="camera-overlay" id="cameraOverlay">
+                    <p>Camera not started</p>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn" id="btnStartFace" onclick="startCamera('face')">Start Camera</button>
+                <button class="btn btn-primary" id="btnCaptureFace" onclick="capturePhoto('face')" style="display:none;">Capture Photo</button>
+                <button class="btn" id="btnRetakeFace" onclick="retakePhoto('face')" style="display:none;">Retake</button>
+            </div>
+        </div>
+
+        <div class="btn-row" id="checkoutButtons">
+            <button class="btn btn-success" id="btnCheckout" onclick="submitCheckout()" disabled>Check Out</button>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <h2>Check-Out Successful!</h2>
+            <p><strong>Visitor:</strong> <span id="successVisitor"></span></p>
+            <p><strong>Time Out:</strong> <span id="successTime"></span></p>
+            <button class="btn" onclick="resetCheckout()" style="margin-top:20px;">New Check-Out</button>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <p id="errorText"></p>
+            <button class="btn" onclick="resetCheckout()" style="margin-top:10px;">Try Again</button>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loadingMessage">Processing...</p>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <p id="toastMessage"></p>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentStream = null;
+        let currentPhoto = null;
+        let selectedVisitorId = null;
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        async function searchVisitors() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query.length < 2) return;
+
+            try {
+                const res = await fetch(API_BASE + '/visitors/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const visitors = await res.json();
+                showSearchResults(visitors);
+            } catch (err) {
+                showToast('Search failed. Try again.');
+            }
+        }
+
+        function showSearchResults(visitors) {
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('show');
+
+            if (visitors.length === 0) {
+                showToast('No visitors found');
+                return;
+            }
+
+            visitors.forEach(v => {
+                const div = document.createElement('div');
+                div.className = 'search-result-item';
+                div.innerHTML = `<strong>${v.first_name} ${v.surname}</strong><br>
+                               <small>Inmate: ${v.inmate_name} | ${v.phone_number}</small>`;
+                div.onclick = () => selectVisitor(v);
+                resultsDiv.appendChild(div);
+            });
+
+            resultsDiv.classList.add('show');
+        }
+
+        function selectVisitor(visitor) {
+            selectedVisitorId = visitor.id;
+            document.getElementById('searchResults').classList.remove('show');
+            document.getElementById('searchInput').value = `${visitor.first_name} ${visitor.surname}`;
+            
+            document.getElementById('visitorName').textContent = visitor.first_name + ' ' + visitor.surname;
+            document.getElementById('inmateName').textContent = visitor.inmate_name;
+            document.getElementById('visitorStatus').textContent = visitor.status;
+            document.getElementById('visitorDate').textContent = visitor.registration_date;
+
+            document.getElementById('visitorInfo').classList.add('show');
+            document.getElementById('faceCaptureSection').classList.add('show');
+        }
+
+        async function startCamera(type) {
+            const video = document.getElementById('video' + capitalize(type));
+            const overlay = document.getElementById('cameraOverlay');
+            const startBtn = document.getElementById('btnStart' + capitalize(type));
+            const captureBtn = document.getElementById('btnCapture' + capitalize(type));
+
+            startBtn.disabled = true;
+            startBtn.textContent = 'Starting...';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+
+                currentStream = stream;
+                video.srcObject = stream;
+
+                video.onloadedmetadata = () => {
+                    video.play();
+                    overlay.classList.add('hidden');
+                    startBtn.classList.add('hidden');
+                    captureBtn.classList.remove('hidden');
+                    showToast('Camera ready!');
+                };
+            } catch (err) {
+                console.error(err);
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Camera';
+                showToast('Camera blocked. Allow camera access.');
+            }
+        }
+
+        function capturePhoto(type) {
+            const video = document.getElementById('video' + capitalize(type));
+            const canvas = document.getElementById('canvas' + capitalize(type));
+            const captureBtn = document.getElementById('btnCapture' + capitalize(type));
+
+            if (!video || !video.srcObject) {
+                showToast('Camera not started');
+                return;
+            }
+
+            captureBtn.textContent = 'Capturing...';
+            captureBtn.disabled = true;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0);
+
+            currentPhoto = canvas.toDataURL('image/jpeg', 0.85);
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+                currentStream = null;
+            }
+
+            document.getElementById('videoFace').style.display = 'none';
+            document.getElementById('previewFaceImg').src = currentPhoto;
+            document.getElementById('previewFaceImg').style.display = 'block';
+
+            captureBtn.classList.add('hidden');
+            document.getElementById('btnRetakeFace').classList.remove('hidden');
+            document.getElementById('btnCheckout').disabled = false;
+
+            showToast('Photo captured!');
+        }
+
+        function retakePhoto(type) {
+            currentPhoto = null;
+
+            document.getElementById('videoFace').style.display = 'block';
+            document.getElementById('previewFaceImg').style.display = 'none';
+            document.getElementById('btnRetakeFace').classList.add('hidden');
+            document.getElementById('btnStartFace').classList.remove('hidden');
+            document.getElementById('btnStartFace').disabled = false;
+            document.getElementById('btnStartFace').textContent = 'Start Camera';
+            document.getElementById('btnCaptureFace').classList.add('hidden');
+            document.getElementById('btnCheckout').disabled = true;
+        }
+
+        async function submitCheckout() {
+            if (!selectedVisitorId) {
+                showToast('Please select a visitor first');
+                return;
+            }
+            if (!currentPhoto) {
+                showToast('Please take a photo first');
+                return;
+            }
+
+            showLoading('Processing check-out...');
+
+            try {
+                const res = await fetch(API_BASE + '/visitors/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        visitorId: selectedVisitorId,
+                        faceImage: currentPhoto
+                    })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('visitorInfo').classList.remove('show');
+                    document.getElementById('faceCaptureSection').classList.remove('show');
+                    document.getElementById('checkoutButtons').classList.add('hidden');
+
+                    document.getElementById('successVisitor').textContent = result.data.visitor;
+                    document.getElementById('successTime').textContent = new Date(result.data.checkOutTime).toLocaleTimeString();
+                    document.getElementById('successMessage').classList.add('show');
+                } else {
+                    showError(result.error || 'Check-out failed');
+                }
+            } catch (err) {
+                showError('Server error. Make sure server is running.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('visitorInfo').classList.remove('show');
+            document.getElementById('faceCaptureSection').classList.remove('show');
+            document.getElementById('checkoutButtons').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('show');
+        }
+
+        function resetCheckout() {
+            selectedVisitorId = null;
+            currentPhoto = null;
+
+            document.getElementById('searchInput').value = '';
+            document.getElementById('visitorInfo').classList.remove('show');
+            document.getElementById('faceCaptureSection').classList.remove('show');
+            document.getElementById('checkoutButtons').classList.remove('hidden');
+            document.getElementById('successMessage').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+
+            document.getElementById('videoFace').style.display = 'block';
+            document.getElementById('previewFaceImg').style.display = 'none';
+            document.getElementById('btnStartFace').classList.remove('hidden');
+            document.getElementById('btnStartFace').disabled = false;
+            document.getElementById('btnRetakeFace').classList.add('hidden');
+            document.getElementById('btnCheckout').disabled = true;
+        }
+
+        function showLoading(msg) {
+            document.getElementById('loadingMessage').textContent = msg;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            document.getElementById('toastMessage').textContent = msg;
+            document.getElementById('toast').classList.remove('hidden');
+            setTimeout(() => document.getElementById('toast').classList.add('hidden'), 3000);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', debounce(searchVisitors, 500));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+            }
+        });
+
+        console.log('CHECK-OUT SYSTEM LOADED');
+    </script>
+</body>
+</html>
