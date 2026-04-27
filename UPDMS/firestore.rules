@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow anyone to read/write vehicle and visitor registrations
+    match /vehicles/{vehicleId} {
+      allow read, write: if true;
+    }
+    
+    match /frequent_visitors/{visitorId} {
+      allow read, write: if true;
+    }
+    
+    match /deliveries/{deliveryId} {
+      allow read, write: if true;
+    }
+    
+    match /visits/{visitId} {
+      allow read, write: if true;
+    }
+    
+    // For admin functions (future use)
+    match /admins/{adminId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

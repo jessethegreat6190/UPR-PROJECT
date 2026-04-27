@@ -6,164 +6,23 @@
   <title>Entry/Exit Control</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/globals.css">
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <style>
-    body { background: var(--prison-maroon); padding: 0; min-height: 100vh; }
-    .header { background: rgba(0,0,0,0.3); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { color: var(--prison-gold); font-size: 1rem; margin: 0; }
-    .header img { height: 35px; }
-    
-    .tabs { display: flex; padding: 10px; gap: 10px; justify-content: center; background: rgba(0,0,0,0.2); }
-    .tab-btn { padding: 10px 20px; background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px; cursor: pointer; }
-    .tab-btn.active { background: var(--prison-gold); color: var(--prison-maroon); font-weight: 700; }
-    
-    .main { padding: 20px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    
-    .panel { background: #fff; border-radius: 16px; padding: 20px; flex: 1; min-width: 300px; max-width: 450px; }
-    .panel h2 { color: var(--prison-maroon); margin: 0 0 15px 0; font-size: 1.1rem; text-align: center; }
-    
-    .input-group { margin-bottom: 15px; }
-    .input-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; font-size: 0.9rem; }
-    .input-group input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; text-align: center; text-transform: uppercase; }
-    .input-group input:focus { border-color: var(--prison-gold); outline: none; }
-    
-    .btn-action { width: 100%; padding: 14px; background: var(--prison-maroon); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
-    .btn-action:hover { background: #600000; }
-    
-    .btn-secondary { background: #666; margin-top: 10px; }
-    
-    #qr-reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-    
-    .result-box { padding: 15px; border-radius: 10px; margin-top: 15px; display: none; }
-    .result-box.show { display: block; }
-    .result-box.success { background: #d1fae5; color: #065f46; }
-    .result-box.error { background: #fee2e2; color: #991b1b; }
-    .result-box.info { background: #dbeafe; color: #1e40af; }
-    
-    .list-section { margin-top: 20px; }
-    .list-section h3 { color: var(--prison-gold); font-size: 0.95rem; margin-bottom: 10px; }
-    .inside-list { background: #f8f9fa; border-radius: 10px; padding: 10px; max-height: 200px; overflow-y: auto; }
-    .inside-item { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .inside-item .plate { font-weight: 700; color: var(--prison-maroon); font-family: monospace; }
-    .inside-item .time { font-size: 0.75rem; color: #666; }
-    .exit-btn { background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-    
-    .mode-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
-    .mode-btn { flex: 1; padding: 8px; background: #eee; border: none; border-radius: 6px; cursor: pointer; }
-    .mode-btn.active { background: var(--prison-gold); color: var(--prison-maroon); font-weight: 600; }
-    
-    @media (max-width: 768px) {
-      .main { flex-direction: column; align-items: center; }
-      .panel { width: 100%; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <img src="../uganda_prisons_first_%20screen/ups-logo.png" alt="UPS">
-      <h1>GATE CONTROL</h1>
-    </div>
-    <a href="../uganda_prisons_first_%20screen/index.html" style="color:var(--prison-gold);font-size:1.2rem;"><i class="fas fa-home"></i></a>
-  </div>
-  
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchMode('entry')"><i class="fas fa-sign-in-alt"></i> ENTRY</button>
-    <button class="tab-btn" onclick="switchMode('exit')"><i class="fas fa-sign-out-alt"></i> EXIT</button>
-    <button class="tab-btn" onclick="switchMode('anpr')"><i class="fas fa-camera"></i> ANPR</button>
-  </div>
-  
-  <div class="main">
-    <!-- Entry Panel -->
-    <div id="panel-entry" class="panel">
-      <h2><i class="fas fa-door-open"></i> ENTRY GATE</h2>
-      
-      <div class="mode-toggle">
-        <button class="mode-btn active" onclick="setEntryMode('qr')">QR Code</button>
-        <button class="mode-btn" onclick="setEntryMode('plate')">Plate Number</button>
-      </div>
-      
-      <div id="entry-qr">
-        <div id="qr-reader"></div>
-      </div>
-      
-      <div id="entry-plate" class="hidden">
-        <div class="input-group">
-          <label>Write Vehicle Plate Number</label>
-          <input type="text" id="entryPlateInput" placeholder="UAA 123X" style="text-transform:uppercase;">
-        </div>
-        <button class="btn-action" onclick="processEntry()">GRANT ENTRY</button>
-      </div>
-      
-      <div id="entry-result" class="result-box"></div>
-    </div>
-    
-    <!-- Exit Panel -->
-    <div id="panel-exit" class="panel hidden">
-      <h2><i class="fas fa-door-closed"></i> EXIT GATE</h2>
-      
-      <div class="mode-toggle">
-        <button class="mode-btn active" onclick="setExitMode('qr')">QR Code</button>
-        <button class="mode-btn" onclick="setExitMode('plate')">Plate Number</button>
-      </div>
-      
-      <div id="exit-qr">
-        <div id="qr-reader-exit"></div>
-      </div>
-      
-      <div id="exit-plate" class="hidden">
-        <div class="input-group">
-          <label>Write Vehicle Plate for Exit</label>
-          <input type="text" id="exitPlateInput" placeholder="UAA 123X" style="text-transform:uppercase;">
-        </div>
-        <button class="btn-action" onclick="processExit()">SIGN OUT</button>
-      </div>
-      
-      <div id="exit-result" class="result-box"></div>
-    </div>
-    
-    <!-- ANPR Panel -->
-    <div id="panel-anpr" class="panel hidden">
-      <h2><i class="fas fa-camera"></i> ANPR CAMERA</h2>
-      
-      <div class="input-group">
-        <label>Simulate Plate Detection</label>
-        <input type="text" id="anprInput" placeholder="Enter detected plate (e.g., UAA 123X)" style="text-transform:uppercase;" onkeyup="if(event.key==='Enter')simulateANPR()">
-      </div>
-      <button class="btn-action" onclick="simulateANPR()">DETECT PLATE</button>
-      
-      <div id="anpr-result" class="result-box"></div>
-      
-      <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px;">
-        <h4 style="margin: 0 0 10px 0; color: var(--prison-maroon);">Supported Formats</h4>
-        <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #666;">
-          <li>Uganda: UAA 123X, UG 1234R</li>
-          <li>Kenya: KAA 123A</li>
-          <li>Tanzania: T 123 ABC</li>
-          <li>Rwanda: RRA 123</li>
-          <li>International: (any format)</li>
-        </ul>
-      </div>
-    </div>
-    
-    <!-- Vehicles Inside -->
-    <div class="panel" style="max-width: 350px;">
-      <h2><i class="fas fa-truck"></i> INSIDE PREMISES</h2>
-      <div id="insideList" class="inside-list"></div>
-      <div style="margin-top: 15px; text-align: center;">
-        <span id="insideCount" style="font-weight: 700; color: var(--prison-maroon);">0</span> vehicles/persons inside
-      </div>
-    </div>
-  </div>
-  
-  <script src="../assets/js/app-core.js"></script>
+  <script src="../assets/js/firebase.js"></script>
+  <script src="../assets/js/database.js"></script>
   <script>
-    const API = 'api.php';
     let currentMode = 'entry';
     let entrySubMode = 'qr';
     let exitSubMode = 'qr';
     let html5Qrcode = null;
     let html5QrcodeExit = null;
+    
+    async function init() {
+      await initFirebase();
+      loadInside();
+      if (currentMode === 'entry') initEntryScanner();
+    }
     
     function switchMode(mode) {
       currentMode = mode;
@@ -191,7 +50,6 @@
       event.target.classList.add('active');
       document.getElementById('entry-qr').classList.toggle('hidden', mode !== 'qr');
       document.getElementById('entry-plate').classList.toggle('hidden', mode !== 'plate');
-      if (mode === 'qr') initEntryScanner();
     }
     
     function setExitMode(mode) {
@@ -200,132 +58,94 @@
       event.target.classList.add('active');
       document.getElementById('exit-qr').classList.toggle('hidden', mode !== 'qr');
       document.getElementById('exit-plate').classList.toggle('hidden', mode !== 'plate');
-      if (mode === 'qr') initExitScanner();
     }
     
     function initEntryScanner() {
       try {
-        if (!html5Qrcode) {
+        if (!html5Qrcode && document.getElementById('qr-reader')) {
           html5Qrcode = new Html5Qrcode("qr-reader");
+          html5Qrcode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, onEntryScan, () => {}).catch(() => {});
         }
-        html5Qrcode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, onEntryScan, () => {}).catch(() => {});
-      } catch(e) {}
+      } catch(e) { console.log('Scanner error:', e); }
     }
     
     function initExitScanner() {
       try {
-        if (!html5QrcodeExit) {
+        if (!html5QrcodeExit && document.getElementById('qr-reader-exit')) {
           html5QrcodeExit = new Html5Qrcode("qr-reader-exit");
+          html5QrcodeExit.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, onExitScan, () => {}).catch(() => {});
         }
-        html5QrcodeExit.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, onExitScan, () => {}).catch(() => {});
-      } catch(e) {}
+      } catch(e) { console.log('Scanner error:', e); }
     }
     
-    function onEntryScan(code) {
-      processEntryCode(code);
-    }
+    function onEntryScan(code) { processEntryCode(code); }
+    function onExitScan(code) { processExitCode(code); }
     
-    function onExitScan(code) {
-      processExitCode(code);
-    }
-    
-    function processEntry() {
+    async function processEntry() {
       const plate = document.getElementById('entryPlateInput').value.trim().toUpperCase();
       if (!plate) return toast('Enter plate number');
       document.getElementById('entryPlateInput').value = '';
-      processEntryCode('DEL-' + plate);
+      await processEntryCode('DEL-' + plate);
     }
     
-    function processExit() {
+    async function processExit() {
       const plate = document.getElementById('exitPlateInput').value.trim().toUpperCase();
       if (!plate) return toast('Enter plate number');
       document.getElementById('exitPlateInput').value = '';
-      processExitCode('DEL-' + plate);
+      await processExitCode('DEL-' + plate);
     }
     
-    function processEntryCode(code) {
-      // Extract plate from QR (DEL-PLATE or FREQ-PLATE)
+    async function processEntryCode(code) {
       const plate = code.replace('DEL-', '').replace('FREQ-', '').trim().toUpperCase();
       
-      // Try vehicle check first
-      fetch(API + '?action=check_vehicle', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicle_plate: plate })
-      }).then(r => r.json()).then(data => {
-        if (data.success && data.allowed) {
-          // Record entry
-          fetch(API + '?action=record_entry', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ vehicle_plate: plate, qr_code: code })
-          });
-          showResult('entry', 'success', '<i class="fas fa-check-circle"></i> ENTRY GRANTED', 
-            `${data.vehicle.company}<br>${plate}<br>Driver: ${data.vehicle.driver_name}`);
-          loadInside();
-        } else {
-          // Try visitor check if not a vehicle
-          fetch(API + '?action=check_visitor', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ qr_code: code, id_number: plate })
-          }).then(r => r.json()).then(vdata => {
-            if (vdata.success && vdata.allowed) {
-              fetch(API + '?action=record_entry', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ qr_code: code, visitor_name: vdata.visitor.full_name })
-              });
-              showResult('entry', 'success', '<i class="fas fa-check-circle"></i> WELCOME', 
-                `${vdata.visitor.full_name}<br>Visiting: ${vdata.visitor.visits_for}`);
-              loadInside();
-            } else {
-              showResult('entry', 'error', '<i class="fas fa-times-circle"></i> ACCESS DENIED', 
-                data.message || 'Not registered or outside schedule');
-            }
-          });
-        }
-      });
-    }
-    
-    function processExitCode(code) {
-      const plate = code.replace('DEL-', '').replace('FREQ-', '').trim().toUpperCase();
+      const vehicle = await UPS_DB.checkVehicle(plate);
+      if (vehicle) {
+        await UPS_DB.recordEntry({ vehiclePlate: plate, qrCode: code, type: 'vehicle', name: vehicle.company || vehicle.driver_name });
+        showResult('entry', 'success', '<i class="fas fa-check-circle"></i> ENTRY GRANTED', `${vehicle.company || vehicle.driver_name}<br>${plate}`);
+        loadInside();
+        return;
+      }
       
-      fetch(API + '?action=record_exit', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicle_plate: plate, qr_code: code })
-      }).then(r => r.json()).then(data => {
-        if (data.success) {
-          showResult('exit', 'success', '<i class="fas fa-check-circle"></i>Signed Out', 'Goodbye!');
-          loadInside();
-        } else {
-          showResult('exit', 'error', '<i class="fas fa-times-circle"></i> Error', data.error || 'No active entry found');
-        }
-      });
+      const visitor = await UPS_DB.checkVisitor(plate);
+      if (visitor) {
+        await UPS_DB.recordEntry({ qrCode: code, visitorName: visitor.full_name, type: 'person', name: visitor.full_name });
+        showResult('entry', 'success', '<i class="fas fa-check-circle"></i> WELCOME', `${visitor.full_name}<br>Visiting: ${visitor.visits_for}`);
+        loadInside();
+        return;
+      }
+      
+      showResult('entry', 'error', '<i class="fas fa-times-circle"></i> ACCESS DENIED', 'Not registered or outside schedule');
     }
     
-    function simulateANPR() {
+    async function processExitCode(code) {
+      const plate = code.replace('DEL-', '').replace('FREQ-', '').trim().toUpperCase();
+      const result = await UPS_DB.recordExit(plate);
+      
+      if (result) {
+        showResult('exit', 'success', '<i class="fas fa-check-circle"></i> Signed Out', 'Goodbye!');
+        loadInside();
+      } else {
+        showResult('exit', 'error', '<i class="fas fa-times-circle"></i> Error', 'No active entry found');
+      }
+    }
+    
+    async function simulateANPR() {
       const plate = document.getElementById('anprInput').value.trim().toUpperCase();
       if (!plate) return toast('Enter plate to detect');
       document.getElementById('anprInput').value = '';
       
-      // Auto entry via ANPR
-      fetch(API + '?action=anpr_entry', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plate: plate })
-      }).then(r => r.json()).then(data => {
-        const resultBox = document.getElementById('anpr-result');
-        resultBox.className = 'result-box show ' + (data.action === 'GRANTED' ? 'success' : 'error');
-        resultBox.innerHTML = `<strong>${data.action}</strong><br>${plate}<br>${data.message || data.vehicle?.company || ''}`;
-        
-        if (data.action === 'GRANTED') {
-          loadInside();
-          // Auto-exit simulation (in real system, this would be at exit gate)
-          setTimeout(() => {
-            fetch(API + '?action=anpr_exit', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ plate: plate })
-            });
-            loadInside();
-          }, 5000);
-        }
-      });
+      const vehicle = await UPS_DB.checkVehicle(plate);
+      const resultBox = document.getElementById('anpr-result');
+      
+      if (vehicle) {
+        await UPS_DB.recordEntry({ vehiclePlate: plate, type: 'ANPR', name: vehicle.company || vehicle.driver_name });
+        resultBox.className = 'result-box show success';
+        resultBox.innerHTML = `<strong>GRANTED</strong><br>${plate}<br>${vehicle.company || ''}`;
+        loadInside();
+      } else {
+        resultBox.className = 'result-box show error';
+        resultBox.innerHTML = `<strong>DENIED</strong><br>${plate}<br>Not in whitelist`;
+      }
     }
     
     function showResult(type, cls, title, msg) {
@@ -335,32 +155,28 @@
       setTimeout(() => box.classList.remove('show'), 5000);
     }
     
-    function loadInside() {
-      fetch(API + '?action=get_inside').then(r => r.json()).then(data => {
-        const list = document.getElementById('insideList');
-        list.innerHTML = data.deliveries.map(d => `
-          <div class="inside-item">
-            <div>
-              <div class="plate">${d.vehicle_plate || d.visitor_name || d.qr_code}</div>
-              <div class="time">In: ${d.entry_time.split(' ')[1]}</div>
-            </div>
-            <button class="exit-btn" onclick="quickExit('${d.vehicle_plate || d.qr_code}')">Out</button>
+    async function loadInside() {
+      const deliveries = await UPS_DB.getActiveDeliveries();
+      const list = document.getElementById('insideList');
+      list.innerHTML = deliveries.map(d => `
+        <div class="inside-item">
+          <div>
+            <div class="plate">${d.vehiclePlate || d.visitorName || d.qrCode || 'Unknown'}</div>
+            <div class="time">In: ${d.entryTime ? new Date(d.entryTime).toLocaleTimeString() : 'N/A'}</div>
           </div>
-        `).join('') || '<p style="color:#999;text-align:center;">No one inside</p>';
-        document.getElementById('insideCount').textContent = data.deliveries.length;
-      });
+          <button class="exit-btn" onclick="quickExit('${d.vehiclePlate || d.qrCode}')">Out</button>
+        </div>
+      `).join('') || '<p style="color:#999;text-align:center;">No one inside</p>';
+      document.getElementById('insideCount').textContent = deliveries.length;
     }
     
-    function quickExit(code) {
-      fetch(API + '?action=record_exit', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qr_code: code })
-      }).then(() => loadInside());
+    async function quickExit(code) {
+      await UPS_DB.recordExit(code);
+      loadInside();
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-      loadInside();
-      initEntryScanner();
+      init();
       setInterval(loadInside, 10000);
     });
   </script>

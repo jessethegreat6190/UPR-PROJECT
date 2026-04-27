@@ -1,0 +1,29 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "FIREBASE-SETUP.md",
+      "**/.*",
+      "**/node_modules/**",
+      "proejct files",
+      "anpr",
+      "api",
+      "config",
+      "includes",
+      "kiosk",
+      "pages",
+      "sql",
+      "uploads",
+      "visiting_inmate/node_modules",
+      "visiting_inmate/server.js",
+      "visiting_inmate/package*.json"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
