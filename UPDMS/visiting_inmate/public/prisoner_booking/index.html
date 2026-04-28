@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPS — Book an Inmate Visit</title>
+  <!-- Montserrat Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #F5F5F5;
+      color: #1A1A1A;
+      padding: 24px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+
+    /* Header */
+    .header-bar {
+      background: #800000;
+      border-radius: 16px;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      border-bottom: 4px solid #FFD700;
+    }
+    .header-bar .home-btn {
+      background: rgba(255,255,255,0.2);
+      color: #FFD700;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .header-bar .home-btn:hover {
+      background: #FFD700;
+      color: #800000;
+    }
+    .logo-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #333333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: 2px solid #666666;
+    }
+    .header-bar h2 {
+      color: white;
+      font-size: 20px;
+    }
+    .header-bar p {
+      color: #CCCCCC;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Steps */
+    .steps-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background: #DDDDDD;
+      z-index: 0;
+    }
+    .step.active .step-circle {
+      background: #000000;
+      color: white;
+      border-color: #000000;
+    }
+    .step.completed .step-circle {
+      background: #333333;
+      color: white;
+      border-color: #333333;
+    }
+    .step.completed:not(:last-child)::after {
+      background: #333333;
+    }
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid #DDDDDD;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      transition: all 0.2s;
+    }
+    .step-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #777777;
+    }
+    .step.active .step-label {
+      color: #000000;
+      font-weight: 700;
+    }
+    .step.completed .step-label {
+      color: #333333;
+    }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      border: 1px solid #DDDDDD;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 20px;
+      color: #000000;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Search */
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #DDDDDD;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .search-box input:focus {
+      border-color: #000000;
+      outline: none;
+    }
+    .btn-primary {
+      background: #800000;
+      color: #FFD700;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover {
+      background: #a00000;
+      box-shadow: 0 4px 12px rgba(128,0,0,0.4);
+    }
+    .btn-secondary {
+      background: white;
+      color: #000000;
+      border: 1.5px solid #000000;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .btn-secondary:hover {
+      background: #F5F5F5;
+    }
+
+    /* Inmate Result Card */
+    .inmate-result-card {
+      background: #E8F5E9;
+      border: 1.5px solid #2E7D32;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .result-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    .result-label {
+      width: 130px;
+      font-size: 13px;
+      color: #777777;
+      font-weight: 600;
+    }
+    .result-value {
+      font-weight: 600;
+    }
+
+    /* Search Result Item */
+    .search-result-item {
+      border: 1px solid #DDDDDD;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      background: white;
+      transition: all 0.2s;
+    }
+    .search-result-item:hover {
+      border-color: #000000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* Rules (expanded by default) */
+    .rule-section {
+      margin-bottom: 24px;
+    }
+    .rule-section h4 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #000000;
+      border-bottom: 2px solid #EEEEEE;
+      padding-bottom: 8px;
+    }
+    .dress-code-images {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .dress-card {
+      text-align: center;
+      width: 160px;
+    }
+    .dress-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #DDDDDD;
+    }
+    .dress-card p {
+      font-size: 12px;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #777777;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #DDDDDD;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #000000;
+      outline: none;
+    }
+
+    .success-box {
+      text-align: center;
+      padding: 30px;
+    }
+    .success-icon {
+      font-size: 60px;
+      margin-bottom: 16px;
+    }
+    .reference-number {
+      background: #000000;
+      color: white;
+      padding: 20px 28px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 20px 0;
+    }
+    .reference-number .label {
+      font-size: 12px;
+      color: #CCCCCC;
+      letter-spacing: 1px;
+    }
+    .reference-number .number {
+      font-size: 36px;
+      font-weight: 800;
+    }
+
+    .notice {
+      background: #FEF3C7;
+      border: 1.5px solid #B45309;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .error-message {
+      color: #C62828;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .action-buttons button {
+      flex: 1;
+    }
+
+    /* Find booking link */
+    .find-booking-link {
+      text-align: right;
+      margin-bottom: 16px;
+    }
+    .find-booking-link a {
+      color: #000000;
+      text-decoration: underline;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 450px;
+      padding: 28px;
+    }
+    .modal h3 {
+      margin-bottom: 20px;
+    }
+    .modal input {
+      width: 100%;
+      padding: 14px;
+      border: 1.5px solid #DDDDDD;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .close-icon {
+      float: right;
+      cursor: pointer;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  
+  <!-- Header -->
+  <div class="header-bar">
+<div style="display:flex;align-items:center;gap:16px;">
+      <img src="../../../../proejct%20files/visiting_inmate/public/ups-logo.png" alt="UPS" style="height:50px;">
+      <div>
+        <h2>UGANDA PRISONS SERVICE</h2>
+        <p>Advance Visit Booking - Required for all inmate visits</p>
+      </div>
+    </div>
+    </div>
+    <a href="../../../../proejct%20files/uganda_prisons_first_%20screen/index.html" class="home-btn">🏠 Home</a>
+  </div>
+
+  <!-- Step Progress (3 steps) -->
+  <div class="steps-container" id="stepProgress">
+    <div class="step active" id="step1Indicator"><div class="step-circle">1</div><div class="step-label">Review Rules</div></div>
+    <div class="step" id="step2Indicator"><div class="step-circle">2</div><div class="step-label">Locate Inmate</div></div>
+    <div class="step" id="step3Indicator"><div class="step-circle">3</div><div class="step-label">Book & Submit</div></div>
+  </div>
+
+  <!-- STEP 1: Review Rules -->
+  <div id="step1" class="card">
+    <div class="card-title"><span>📋</span> Review Rules & Dress Code</div>
+    <p style="margin-bottom:20px;color:#777777;">Please read all rules carefully. You must comply to be allowed entry.</p>
+    
+    <div class="rule-section">
+      <h4>👕 Dress Code</h4>
+      <p><strong>You must wear appropriate, modest clothing.</strong> The following are NOT permitted:</p>
+      <ul style="margin-top:8px;padding-left:20px;">
+        <li>Revealing or provocative clothing</li>
+        <li>Halter tops, crop tops, backless tops, sleeveless garments</li>
+        <li>Miniskirts or skirts more than 2 inches above the knee</li>
+        <li>Clothing resembling inmate uniforms (khaki or green military-style)</li>
+        <li>Hats or caps</li>
+        <li>See-through garments of any type</li>
+      </ul>
+      <div class="dress-code-images">
+        <div class="dress-card">
+          <img src="caps.jpg" alt="Appropriate attire - modest dress" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div style="display:none; width:100%; height:200px; background:#EEEEEE; border-radius:8px; align-items:center; justify-content:center; flex-direction:column;">
+            <span style="font-size:36px;">👗</span>
+            <span style="font-size:12px;">caps.jpg</span>
+          </div>
+          <p>Caps ❌</p>
+        </div>
+        <div class="dress-card">
+          <img src="mini.png" alt="Inappropriate attire - revealing" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div style="display:none; width:100%; height:200px; background:#FFEBEE; border-radius:8px; align-items:center; justify-content:center; flex-direction:column; border:1px solid #C62828;">
+            <span style="font-size:36px;">❌</span>
+            <span style="font-size:12px;">mini.png</span>
+          </div>
+          <p>❌ Revealing / sleeveless</p>
+        </div>
+      </div>
+      <p style="font-size:12px; color:#777; margin-top:8px;">*Images are for illustrative purposes only.</p>
+    </div>
+    
+    <div class="rule-section">
+      <h4>👥 Who Can Visit</h4>
+      <p><strong>Immediate Family:</strong> Mother, Father, Step-parents, Foster parents, Brothers, Sisters, Spouse, Children</p>
+      <p><strong>Relatives:</strong> Grandparents, Uncles, Aunts, In-laws, Cousins</p>
+      <p><strong>Others (up to 10 friends/associates):</strong> Clergy, Civic group members, Attorneys, Former/prospective employers, Sponsors, Parole advisors, Foreign officials.</p>
+    </div>
+    
+    <div class="rule-section">
+      <h4>🕐 Visiting Days & Hours</h4>
+      <p><strong>Visiting hours end at 4:00 PM.</strong> You may arrive any time before 4:00 PM on your scheduled day.</p>
+      <p><strong>Day restrictions by inmate class:</strong></p>
+      <ul>
+        <li><strong>Upper Section:</strong> Mondays & Thursdays</li>
+        <li><strong>Lower Section:</strong> Tuesdays & Fridays</li>
+        <li><strong>Remand:</strong> Wednesdays & Saturdays</li>
+      </ul>
+    </div>
+    
+    <div class="rule-section">
+      <h4>⚠️ Booking Reference Rules</h4>
+      <ul style="padding-left:20px;">
+        <li>Your booking reference is <strong>single-use only</strong>.</li>
+        <li>It <strong>expires</strong> on check-out or midnight on your booking date.</li>
+        <li>You need a <strong>new booking for each visit</strong>.</li>
+      </ul>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="btn-primary" onclick="goToStep(2)">Continue to Locate Inmate</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Locate Inmate -->
+  <div id="step2" class="card" style="display:none;">
+    <div class="card-title"><span>🔍</span> Locate the Inmate</div>
+    <p style="margin-bottom:20px;color:#777777;">Enter the inmate's Register Number (at least 6 characters) to find them.</p>
+    <div class="search-box">
+      <input type="text" id="inmateSearchInput" placeholder="Enter Register Number">
+      <button class="btn-primary" onclick="searchInmate()">Search</button>
+    </div>
+    <div id="searchError" class="error-message"></div>
+    <div id="searchResults"></div>
+    <div id="selectedInmateDisplay" style="display:none;"></div>
+    <div class="action-buttons">
+      <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn-primary" id="continueToStep3" style="display:none;" onclick="goToStep(3)">Continue to Book →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Book & Submit -->
+  <div id="step3" class="card" style="display:none;">
+    <div class="card-title"><span>📅</span> Book Your Visit</div>
+    <div id="blockedWarning" style="display:none;" class="notice" style="background:#FFEBEE;border-color:#C62828;color:#C62828;">
+      ⚠️ This inmate is currently blocked from receiving visitors. You cannot proceed with booking.
+    </div>
+    <div id="bookingForm" style="display:none;">
+      <div class="form-group">
+        <label>Your Full Name *</label>
+        <input type="text" id="visitorName" placeholder="e.g. Aisha Nalwoga">
+      </div>
+      <div class="form-group">
+        <label>National ID Number *</label>
+        <input type="text" id="visitorNIN" placeholder="e.g. CM9010001234">
+      </div>
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="visitorPhone" placeholder="+256 7XX XXX XXX">
+      </div>
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="visitorEmail" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>Relationship to Inmate *</label>
+        <select id="relationship">
+          <option>Family Member</option><option>Legal Representative</option><option>Clergy</option><option>Friend</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Preferred Visit Date *</label>
+        <select id="visitDateSelect" onchange="updateDayDisplay()">
+          <option value="">Select a date...</option>
+        </select>
+        <div class="day-display" id="dayDisplay"></div>
+        <p style="font-size:12px; color:#777; margin-top:6px;">You may arrive any time before 4:00 PM on this date.</p>
+      </div>
+      <div id="bookingInmateInfo" style="background:#F5F5F5;padding:12px;border-radius:8px;margin-bottom:16px;"></div>
+    </div>
+    <div id="successMessage" style="display:none;">
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h2 style="color:#2E7D32;margin-bottom:8px;">Booking Submitted!</h2>
+        <!-- Removed "Pending admin approval. You will receive an email confirmation." -->
+        <div class="reference-number">
+          <div class="label">WRITE DOWN THIS REFERENCE — IT WILL BE REQUIRED AT THE GATE</div>
+          <div class="number" id="bookingRefDisplay">BK-2026-0001</div>
+        </div>
+        <div class="notice" style="background:#F3E5F5;border-color:#6A1B9A;color:#6A1B9A;" id="notificationMessage">
+          <!-- Dynamically filled -->
+        </div>
+        <p>Present this reference number at the gate kiosk on your visit day. Arrive before 4:00 PM.</p>
+        <button class="btn-primary" style="margin-top:20px;" onclick="resetBooking()">Book Another Visit</button>
+      </div>
+    </div>
+    <div class="action-buttons" id="formButtons">
+      <button class="btn-secondary" onclick="goToStep(2)">← Back</button>
+      <button class="btn-primary" onclick="submitBooking()">Submit Booking →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Find Booking Modal -->
+<div class="modal-overlay" id="findBookingModal">
+  <div class="modal">
+    <span class="close-icon" onclick="closeFindBookingModal()">&times;</span>
+    <h3>Find Your Booking Reference</h3>
+    <p style="margin-bottom:16px;color:#777;">Enter the phone number used during booking.</p>
+    <input type="tel" id="searchPhoneInput" placeholder="+256 7XX XXX XXX">
+    <div id="modalSearchResult" style="margin:16px 0;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="searchBookingByPhone()">Search</button>
+      <button class="btn-secondary" onclick="closeFindBookingModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="demo-data.js"></script>
+<script>
+  // ---------- Expanded Inmate Database for Testing ----------
+  const inmateDB = [
+    { id: 'UPS/LZ/2024/4521', name: 'JOHN SSEMAKULA', dob: '1985-03-12', status: 'Remand', location: 'Remand', blocked: false },
+    { id: 'UPS/LZ/2023/1892', name: 'MUSOKE DAVID', dob: '1990-07-21', status: 'Convicted', location: 'Lower Section', blocked: false },
+    { id: 'UPS/MB/2025/0041', name: 'WASSWA JOSEPH', dob: '1978-11-05', status: 'Remand', location: 'Remand', blocked: true },
+    { id: 'UPS/LZ/2024/8712', name: 'OKELLO PATRICK', dob: '1982-09-18', status: 'Convicted', location: 'Upper Section', blocked: false },
+    { id: 'UPS/LZ/2025/1234', name: 'KATO RONALD', dob: '1995-04-30', status: 'Remand', location: 'Remand', blocked: false },
+    { id: 'UPS/KLA/2024/3321', name: 'NAKATO MARY', dob: '1988-12-14', status: 'Convicted', location: 'Upper Section', blocked: false },
+    { id: 'UPS/LZ/2025/8891', name: 'JOHN SSEMAKULA', dob: '1992-07-25', status: 'Remand', location: 'Remand', blocked: false },
+    { id: 'TEST001', name: 'TEST INMATE ONE', dob: '1990-01-01', status: 'Remand', location: 'Remand', blocked: false },
+    { id: 'TEST002', name: 'TEST INMATE TWO', dob: '1988-05-15', status: 'Convicted', location: 'Upper Section', blocked: false },
+    { id: 'TEST003', name: 'BLOCKED TEST', dob: '1975-12-20', status: 'Convicted', location: 'Lower Section', blocked: true },
+  ];
+
+  let storedBookings = [
+    { phone: ' ', ref: ' ', name: '' },
+    { phone: ' ', ref: ' ', name: ' ' }
+  ];
+
+  let selectedInmate = null;
+  let currentStep = 1;
+  let bookingRefCounter = 150;
+
+  function calculateAge(dobString) {
+    const dob = new Date(dobString);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  }
+
+  function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+  }
+
+  function getDayOfWeek(dateString) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const d = new Date(dateString);
+    return days[d.getDay()];
+  }
+
+  function updateDayDisplay() {
+    const select = document.getElementById('visitDateSelect');
+    const dayDisplay = document.getElementById('dayDisplay');
+    if (select.value) {
+      const dayName = getDayOfWeek(select.value);
+      dayDisplay.textContent = `📅 ${dayName}`;
+    } else {
+      dayDisplay.textContent = '';
+    }
+  }
+
+  function generateAllowedDates(location) {
+    const allowedDays = {
+      'Upper Section': [1, 4],
+      'Lower Section': [2, 5],
+      'Remand': [3, 6]
+    };
+    const days = allowedDays[location] || [];
+    const dates = [];
+    const today = new Date();
+    for (let i = 1; i <= 60; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      if (days.includes(d.getDay())) {
+        dates.push(d.toISOString().split('T')[0]);
+      }
+    }
+    return dates;
+  }
+
+  function populateDateSelect(location) {
+    const select = document.getElementById('visitDateSelect');
+    select.innerHTML = '<option value="">Select a date...</option>';
+    const dates = generateAllowedDates(location);
+    dates.forEach(dateStr => {
+      const option = document.createElement('option');
+      option.value = dateStr;
+      const d = new Date(dateStr);
+      option.textContent = d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'short', year:'numeric'});
+      select.appendChild(option);
+    });
+  }
+
+  function goToStep(step) {
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'none';
+    document.getElementById('step' + step).style.display = 'block';
+    
+    document.querySelectorAll('.step').forEach((el, idx) => {
+      el.classList.remove('active', 'completed');
+      if (idx + 1 < step) el.classList.add('completed');
+      if (idx + 1 === step) el.classList.add('active');
+    });
+    currentStep = step;
+    
+    if (step === 3 && selectedInmate) {
+      displayBookingStep();
+    }
+  }
+
+  function goToStep(2) {
+    goToStep(2);
+  }
+
+  function searchInmate() {
+    const query = document.getElementById('inmateSearchInput').value.trim();
+    const errorDiv = document.getElementById('searchError');
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (query.length < 2) {
+      errorDiv.textContent = 'Search must be at least 2 characters.';
+      resultsDiv.innerHTML = '';
+      document.getElementById('continueToStep3').style.display = 'none';
+      return;
+    }
+    errorDiv.textContent = '';
+    resultsDiv.innerHTML = '<p style="color:#666;">Searching...</p>';
+    document.getElementById('continueToStep3').style.display = 'none';
+    
+    // Use local inmate database from inmate-management
+    let inmates = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem('ups_inmate_records') || '[]');
+      inmates = stored.filter(i => 
+        i.name && i.name.toLowerCase().includes(query.toLowerCase()) ||
+        i.no && i.no.toLowerCase().includes(query.toLowerCase()) ||
+        i.crime && i.crime.toLowerCase().includes(query.toLowerCase())
+      );
+    } catch (e) {}
+    
+    // Also check local fallback DB
+    const matches = inmateDB.filter(i => i.id.toLowerCase().includes(query.toLowerCase()));
+    if (matches.length > 0) {
+      matches.forEach(m => {
+        if (!inmates.find(e => e.no === m.id)) {
+          inmates.push({no: m.id, name: m.name, location: m.location, crime: 'N/A', status: m.status});
+        }
+      });
+    }
+    
+    if (inmates.length > 0) {
+      let html = `<p style="margin-bottom:12px;font-weight:600;">Select the inmate:</p>`;
+      inmates.forEach(im => {
+        html += `
+          <div class="search-result-item" onclick="selectInmate('${im.id || im.no}', '${(im.name || '').replace(/'/g, "\\'")}', '${im.no || im.id}', '${im.location || im.location}')">
+            <div style="flex:1;">
+              <div style="margin-top:6px;font-size:13px;color:#777;">
+                <strong>Register Number:</strong> ${im.no || im.id}<br>
+                <strong>Name:</strong> ${im.name}<br>
+                <strong>Location:</strong> ${im.location || 'N/A'}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      resultsDiv.innerHTML = html;
+    } else {
+      resultsDiv.innerHTML = '<p style="color:#C62828;">No inmates found with that number.</p>';
+    }
+  }
+          html += `
+            <div class="search-result-item" onclick="selectInmate('${im.id}', '${im.name.replace(/'/g, "\\'")}', '${im.id}', '${im.location}')">
+              <div style="flex:1;">
+                <div style="margin-top:6px;font-size:13px;color:#777;">
+                  <strong>Register Number:</strong> ${im.id}<br>
+                  <strong>Name:</strong> ${im.name}<br>
+                  <strong>Location:</strong> ${im.location}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        resultsDiv.innerHTML = html;
+      }
+    })
+    .catch(() => {
+      // Offline - use local DB
+      const matches = inmateDB.filter(i => i.id.toLowerCase().includes(query.toLowerCase()));
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = '<p style="color:#C62828;">No inmates found. System offline?</p>';
+        return;
+      }
+      let html = `<p style="margin-bottom:12px;font-weight:600;">Select the inmate:</p>`;
+      matches.forEach(im => {
+        const age = calculateAge(im.dob);
+        html += `
+          <div class="search-result-item" onclick="selectInmate('${im.id}', '${im.name.replace(/'/g, "\\'")}', '${im.id}', '${im.location}')">
+            <div style="flex:1;">
+              <div style="margin-top:6px;font-size:13px;color:#777;">
+                <strong>Register Number:</strong> ${im.id}<br>
+                <strong>Name:</strong> ${im.name}<br>
+                <strong>Location:</strong> ${im.location}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      resultsDiv.innerHTML = html;
+    });
+  }
+
+  function selectInmate(inmateId, name, regNumber, location) {
+    // Handle both API data and local data
+    if (name && regNumber) {
+      selectedInmate = {
+        id: inmateId,
+        name: name,
+        regNumber: regNumber,
+        location: location,
+        fromApi: true
+      };
+    } else {
+      const localInmate = inmateDB.find(i => i.id === inmateId);
+      selectedInmate = localInmate ? {
+        id: localInmate.id,
+        name: localInmate.name,
+        regNumber: localInmate.id,
+        location: localInmate.location,
+        dob: localInmate.dob,
+        blocked: localInmate.blocked,
+        fromApi: false
+      } : null;
+    }
+    
+    if (!selectedInmate) return;
+    
+    const displayDiv = document.getElementById('selectedInmateDisplay');
+    displayDiv.innerHTML = `
+      <div class="inmate-result-card">
+        <div class="result-row"><span class="result-label">Register Number:</span><span class="result-value">${selectedInmate.regNumber || selectedInmate.id}</span></div>
+        <div class="result-row"><span class="result-label">Name:</span><span class="result-value">${selectedInmate.name}</span></div>
+        <div class="result-row"><span class="result-label">Location/Section:</span><span class="result-value">${selectedInmate.location}</span></div>
+      </div>
+    `;
+    displayDiv.style.display = 'block';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('continueToStep3').style.display = 'block';
+  }
+
+  function displayBookingStep() {
+    const blockedWarning = document.getElementById('blockedWarning');
+    const bookingForm = document.getElementById('bookingForm');
+    const inmateInfo = document.getElementById('bookingInmateInfo');
+    
+    if (selectedInmate.blocked) {
+      blockedWarning.style.display = 'block';
+      bookingForm.style.display = 'none';
+      document.getElementById('formButtons').style.display = 'none';
+    } else {
+      blockedWarning.style.display = 'none';
+      bookingForm.style.display = 'block';
+      document.getElementById('formButtons').style.display = 'flex';
+      
+      populateDateSelect(selectedInmate.location || 'Remand');
+      
+      inmateInfo.innerHTML = `
+        <strong>Visiting Inmate:</strong><br>
+        Register Number: ${selectedInmate.regNumber || selectedInmate.id}<br>
+        Name: ${selectedInmate.name}<br>
+        Location: ${selectedInmate.location || 'Remand'}
+      `;
+    }
+  }
+
+  function submitBooking() {
+    const name = document.getElementById('visitorName').value.trim();
+    const nin = document.getElementById('visitorNIN').value.trim();
+    const phone = document.getElementById('visitorPhone').value.trim();
+    const email = document.getElementById('visitorEmail').value.trim();
+    const date = document.getElementById('visitDateSelect').value;
+    
+    if (!name || !nin || !phone || !email || !date) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    
+    if (!selectedInmate) {
+      alert('Please select an inmate first.');
+      return;
+    }
+    
+    // Try API first
+    fetch(`../../api/inmate.php?action=create_booking`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inmate_id: selectedInmate.id,
+        visitor_name: name,
+        visitor_nin: nin,
+        visitor_phone: phone,
+        visitor_email: email,
+        visit_date: date
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        finishBooking(data.booking_ref, phone, name);
+      } else {
+        // Fallback to local
+        finishBookingLocal(phone, name);
+      }
+    })
+    .catch(() => finishBookingLocal(phone, name));
+  }
+  
+  function finishBooking(ref, phone, name) {
+    document.getElementById('bookingRefDisplay').textContent = ref;
+    storedBookings.push({ phone, ref, name });
+    saveToStorage(phone, ref, name);
+    
+    const notifyMsg = `📧 An email will be sent to ${document.getElementById('visitorEmail').value} once approved.<br><strong>⚠ Expires on check-out or midnight on visit date.</strong>`;
+    document.getElementById('notificationMessage').innerHTML = notifyMsg;
+    
+    document.getElementById('bookingForm').style.display = 'none';
+    document.getElementById('formButtons').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'block';
+  }
+  
+  function finishBookingLocal(phone, name) {
+    bookingRefCounter++;
+    const ref = 'BK-' + new Date().getFullYear() + '-0' + bookingRefCounter;
+    finishBooking(ref, phone, name);
+  }
+  
+  function saveToStorage(phone, ref, name) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('updms_bookings') || '[]');
+      stored.push({ phone, ref, name, date: new Date().toISOString() });
+      localStorage.setItem('updms_bookings', JSON.stringify(stored));
+    } catch (e) {}
+  }
+
+  function resetBooking() {
+    document.getElementById('visitorName').value = '';
+    document.getElementById('visitorNIN').value = '';
+    document.getElementById('visitorPhone').value = '';
+    document.getElementById('visitorEmail').value = '';
+    document.getElementById('visitDateSelect').innerHTML = '<option value="">Select a date...</option>';
+    document.getElementById('dayDisplay').textContent = '';
+    document.getElementById('bookingForm').style.display = 'none';
+    document.getElementById('formButtons').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+    selectedInmate = null;
+    document.getElementById('selectedInmateDisplay').style.display = 'none';
+    document.getElementById('continueToStep3').style.display = 'none';
+    document.getElementById('inmateSearchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchError').textContent = '';
+    goToStep(1);
+  }
+
+  function openFindBookingModal() {
+    document.getElementById('findBookingModal').style.display = 'flex';
+    document.getElementById('searchPhoneInput').value = '';
+    document.getElementById('modalSearchResult').innerHTML = '';
+  }
+  function closeFindBookingModal() {
+    document.getElementById('findBookingModal').style.display = 'none';
+  }
+  function searchBookingByPhone() {
+    const phone = document.getElementById('searchPhoneInput').value.trim();
+    const resultDiv = document.getElementById('modalSearchResult');
+    
+    if (!phone) {
+      resultDiv.innerHTML = '<p style="color:#C62828;">Please enter a phone number.</p>';
+      return;
+    }
+    
+    resultDiv.innerHTML = '<p>Searching...</p>';
+    
+    // Try API first
+    fetch(`../../api/inmate.php?action=get_booking`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.bookings && data.bookings.length > 0) {
+        const b = data.bookings[0];
+        resultDiv.innerHTML = `<div style="background:#E8F5E9;padding:16px;border-radius:8px;">
+          <strong>Booking found!</strong><br>
+          Reference: <span style="font-size:20px;font-weight:800;">${b.booking_ref}</span><br>
+          Visitor: ${b.visitor_name}<br>
+          Inmate: ${b.first_name} ${b.last_name}<br>
+          Date: ${b.visit_date}
+        </div>`;
+      } else {
+        // Try local storage
+        searchLocalBookings(phone, resultDiv);
+      }
+    })
+    .catch(() => searchLocalBookings(phone, resultDiv));
+  }
+  
+  function searchLocalBookings(phone, resultDiv) {
+    const booking = storedBookings.find(b => b.phone === phone);
+    if (booking) {
+      resultDiv.innerHTML = `<div style="background:#E8F5E9;padding:16px;border-radius:8px;">
+        <strong>Booking found!</strong><br>
+        Reference: <span style="font-size:20px;font-weight:800;">${booking.ref}</span><br>
+        Name: ${booking.name}
+      </div>`;
+    } else {
+      try {
+        const stored = JSON.parse(localStorage.getItem('updms_bookings') || '[]');
+        const local = stored.find(b => b.phone === phone);
+        if (local) {
+          resultDiv.innerHTML = `<div style="background:#E8F5E9;padding:16px;border-radius:8px;">
+            <strong>Booking found!</strong><br>
+            Reference: <span style="font-size:20px;font-weight:800;">${local.ref}</span><br>
+            Name: ${local.name}
+          </div>`;
+        } else {
+          resultDiv.innerHTML = '<p style="color:#C62828;">No booking found for that phone number.</p>';
+        }
+      } catch (e) {
+        resultDiv.innerHTML = '<p style="color:#C62828;">No booking found for that phone number.</p>';
+      }
+    }
+  }
+    } else {
+      resultDiv.innerHTML = `<p style="color:#C62828;">No booking found for that phone number.</p>`;
+    }
+  }
+
+  document.getElementById('visitDateSelect').addEventListener('change', updateDayDisplay);
+</script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Gate Dashboard - Uganda Prisons</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #800000 0%, #600000 100%); color: #fff; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.3rem; }
+    .header .logo { display: flex; align-items: center; gap: 10px; }
+    .header img { height: 40px; }
+    .gold { color: #FFD700; }
+    
+    .nav { background: #fff; padding: 10px 25px; display: flex; gap: 5px; border-bottom: 2px solid #eee; }
+    .nav a { padding: 10px 20px; text-decoration: none; color: #666; border-radius: 8px; font-weight: 500; }
+    .nav a:hover, .nav a.active { background: #800000; color: #fff; }
+    
+    .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+    
+    .alert-box { background: #FFF3CD; border: 2px solid #FFC107; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+    .alert-box.danger { background: #F8D7DA; border-color: #DC3545; }
+    .alert-box i { font-size: 1.5rem; }
+    .alert-box .count { font-size: 1.5rem; font-weight: 800; color: #800000; }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #800000; }
+    .stat-card h3 { color: #666; font-size: 0.75rem; text-transform: uppercase; }
+    .stat-card .num { font-size: 2rem; font-weight: 700; color: #800000; }
+    
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 20px; }
+    .card-header { background: #800000; color: #fff; padding: 15px 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .card-header .gold { color: #FFD700; }
+    
+    .search-bar { padding: 15px 20px; background: #f8f9fa; display: flex; gap: 10px; }
+    .search-bar input { flex: 1; padding: 10px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+    .search-bar input:focus { border-color: #800000; outline: none; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; color: #800000; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+    tr:hover { background: #fafafa; }
+    
+    .status { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .status.inside { background: #D4EDDA; color: #155724; }
+    .status.exited { background: #E2E3E5; color: #383D41; }
+    .status.overstay { background: #F8D7DA; color: #721C24; }
+    .status.pending { background: #FFF3CD; color: #856404; }
+    
+    .action-btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .action-btn.exit { background: #28A745; color: #fff; }
+    .action-btn.verify { background: #800000; color: #FFD700; }
+    
+    .tabs { display: flex; border-bottom: 2px solid #eee; }
+    .tab { padding: 15px 25px; cursor: pointer; font-weight: 500; color: #666; border-bottom: 3px solid transparent; }
+    .tab:hover { background: #f8f9fa; }
+    .tab.active { color: #800000; border-bottom-color: #800000; }
+    
+    .empty { text-align: center; padding: 40px; color: #999; }
+    .empty i { font-size: 3rem; margin-bottom: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img src="ups-logo.png" alt="UPS">
+      <div>
+        <h1>UGANDA PRISONS SERVICE</h1>
+        <span style="font-size: 0.8rem;">GATE CONTROL DASHBOARD</span>
+      </div>
+    </div>
+    <div>
+      <span id="liveClock"></span>
+    </div>
+  </header>
+  
+  <nav class="nav">
+    <a href="#" class="active" onclick="showTab('all')"><i class="fas fa-users"></i> All Entries</a>
+    <a href="#" onclick="showTab('inmate')"><i class="fas fa-user-clock"></i> Visit Inmate</a>
+    <a href="#" onclick="showTab('general')"><i class="fas fa-users"></i> General Visits</a>
+    <a href="#" onclick="showTab('vehicle')"><i class="fas fa-car"></i> Vehicles</a>
+    <a href="#" onclick="showTab('hospital')"><i class="fas fa-hospital"></i> Hospital</a>
+    <a href="#" onclick="showTab('official')"><i class="fas fa-briefcase"></i> Official</a>
+  </nav>
+  
+  <div class="container">
+    <!-- Overstay Alert -->
+    <div class="alert-box danger" id="overstayAlert" style="display: none;">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>
+        <strong>⚠️ Vehicle Overstay Alert!</strong>
+        <div id="overstayCount" class="count">0 vehicles</div>
+      </div>
+      <a href="#" onclick="showTab('vehicle')" style="color: #800000; font-weight: 600;">View Details →</a>
+    </div>
+    
+    <div class="stats-row">
+      <div class="stat-card">
+        <h3>Inside Now</h3>
+        <div class="num" id="insideNow">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Exited Today</h3>
+        <div class="num" id="exitedToday">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Expected</h3>
+        <div class="num" id="expected">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Vehicles Inside</h3>
+        <div class="num" id="vehiclesInside">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Overstay</h3>
+        <div class="num" id="overstayCount2" style="color: #DC3545;">0</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fas fa-list"></i> <span class="gold">Entry Records</span></span>
+        <div>
+          <button class="action-btn verify" onclick="refreshData()"><i class="fas fa-sync"></i> Refresh</button>
+        </div>
+      </div>
+      
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by name, ref number, phone, plate..." oninput="filterTable()">
+        <select id="statusFilter" onchange="filterTable()" style="padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+          <option value="all">All Status</option>
+          <option value="inside">Inside</option>
+          <option value="exited">Exited</option>
+          <option value="overstay">Overstay</option>
+        </select>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Ref Number</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Destination</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="entriesTable">
+          <tr><td colspan="7" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ups_all_entries';
+    let allEntries = [];
+    
+    function loadData() {
+      allEntries = [];
+      
+      // Load from various sources
+      const visits = JSON.parse(localStorage.getItem('ups_active_visits') || '[]');
+      visits.forEach(v => {
+        if (v.status === 'active') {
+          allEntries.push({...v, category: 'Visit Inmate', status: 'inside', timeIn: v.timeIn});
+        }
+      });
+      
+      const vehicles = JSON.parse(localStorage.getItem('ups_vehicle_entries') || '[]');
+      vehicles.forEach(v => {
+        allEntries.push({
+          ref: v.ref,
+          name: v.driver,
+          phone: v.phone,
+          category: 'Vehicle: ' + v.plate,
+          destination: v.company || v.purpose,
+          status: v.status,
+          timeIn: v.time,
+          plate: v.plate,
+          passengerCount: v.passengerCount
+        });
+      });
+      
+      // Add general visits
+      const genVisits = JSON.parse(localStorage.getItem('ups_general_visits') || '[]');
+      genVisits.forEach(v => {
+        allEntries.push({...v, category: 'General Visit'});
+      });
+      
+      // Add hospital visits
+      const hospital = JSON.parse(localStorage.getItem('ups_hospital_visits') || '[]');
+      hospital.forEach(v => {
+        allEntries.push({...v, category: 'Hospital', destination: v.destination});
+      });
+      
+      // Add official visits
+      const official = JSON.parse(localStorage.getItem('ups_official_visits') || '[]');
+      official.forEach(v => {
+        allEntries.push({...v, category: 'Official Visit'});
+      });
+      
+      checkOverstays();
+      renderTable();
+      updateStats();
+    }
+    
+    function checkOverstays() {
+      const now = new Date();
+      const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
+      
+      const overstays = allEntries.filter(e => {
+        if (e.status !== 'inside') return false;
+        const entryTime = new Date(e.timeIn);
+        return entryTime < twoDaysAgo;
+      });
+      
+      const alertBox = document.getElementById('overstayAlert');
+      if (overstays.length > 0) {
+        alertBox.style.display = 'flex';
+        document.getElementById('overstayCount').textContent = overstays.length + ' vehicles/visitors';
+        document.getElementById('overstayCount2').textContent = overstays.length;
+      } else {
+        alertBox.style.display = 'none';
+        document.getElementById('overstayCount2').textContent = '0';
+      }
+    }
+    
+    function renderTable(filter = 'all') {
+      const tbody = document.getElementById('entriesTable');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      
+      let filtered = allEntries.filter(e => {
+        const matchSearch = !search || 
+          (e.name || '').toLowerCase().includes(search) ||
+          (e.ref || '').toLowerCase().includes(search) ||
+          (e.phone || '').includes(search) ||
+          (e.plate || '').toLowerCase().includes(search);
+        
+        let matchStatus = statusFilter === 'all' || e.status === statusFilter;
+        let matchFilter = filter === 'all' || e.category.toLowerCase().includes(filter);
+        
+        return matchSearch && matchStatus && matchFilter;
+      });
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty"><i class="fas fa-inbox"></i> No entries found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(e => {
+        const time = e.timeIn ? new Date(e.timeIn).toLocaleString() : '-';
+        let statusClass = e.status === 'inside' ? 'inside' : 'exited';
+        if (e.status === 'inside') {
+          const entryTime = new Date(e.timeIn);
+          const now = new Date();
+          const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
+          if (entryTime < twoDaysAgo) statusClass = 'overstay';
+        }
+        
+        return `<tr>
+          <td>${time}</td>
+          <td><strong>${e.ref || 'N/A'}</strong></td>
+          <td>${e.name || 'N/A'}</td>
+          <td>${e.category}</td>
+          <td>${e.destination || e.destination_ward || 'General'}</td>
+          <td><span class="status ${statusClass}">${statusClass.toUpperCase()}</span></td>
+          <td>
+            ${e.status === 'inside' ? `<button class="action-btn exit" onclick="signOut('${e.ref}')"><i class="fas fa-sign-out-alt"></i> Exit</button>` : '-'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function updateStats() {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      
+      const inside = allEntries.filter(e => e.status === 'inside').length;
+      const exited = allEntries.filter(e => {
+        if (e.status !== 'exited') return false;
+        const exitTime = new Date(e.timeOut);
+        return exitTime.toISOString().split('T')[0] === today;
+      }).length;
+      
+      document.getElementById('insideNow').textContent = inside;
+      document.getElementById('exitedToday').textContent = exited;
+      document.getElementById('expected').textContent = inside + exited;
+      document.getElementById('vehiclesInside').textContent = allEntries.filter(e => e.category.includes('Vehicle')).length;
+    }
+    
+    function signOut(ref) {
+      if (!confirm('Confirm exit for ' + ref + '?')) return;
+      
+      // Update in vehicles
+      const vehicles = JSON.parse(localStorage.getItem('ups_vehicle_entries') || '[]');
+      const vIdx = vehicles.findIndex(v => v.ref === ref);
+      if (vIdx >= 0) {
+        vehicles[vIdx].status = 'exited';
+        vehicles[vIdx].timeOut = new Date().toISOString();
+        localStorage.setItem('ups_vehicle_entries', JSON.stringify(vehicles));
+      }
+      
+      // Update in visits
+      const visits = JSON.parse(localStorage.getItem('ups_active_visits') || '[]');
+      const idx = visits.findIndex(v => v.ref === ref);
+      if (idx >= 0) {
+        visits[idx].status = 'signed_out';
+        visits[idx].timeOut = new Date().toISOString();
+        localStorage.setItem('ups_active_visits', JSON.stringify(visits));
+      }
+      
+      loadData();
+      alert('Exit recorded for ' + ref);
+    }
+    
+    function filterTable() {
+      renderTable(currentTab);
+    }
+    
+    let currentTab = 'all';
+    function showTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+      event.target.closest('a')?.classList.add('active');
+      renderTable(tab);
+    }
+    
+    function refreshData() {
+      loadData();
+    }
+    
+    setInterval(() => {
+      document.getElementById('liveClock').textContent = new Date().toLocaleString();
+    }, 1000);
+    
+    loadData();
+  </script>
+</body>
+</html>

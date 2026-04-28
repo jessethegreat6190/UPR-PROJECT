@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Inmate Management - Uganda Prisons</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    
+    .header { background: linear-gradient(135deg, #800000 0%, #600000 100%); color: #fff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.4rem; }
+    .header img { height: 45px; }
+    .gold { color: #FFD700; }
+    
+    .nav { background: #fff; padding: 12px 30px; display: flex; gap: 10px; border-bottom: 2px solid #eee; }
+    .nav a { padding: 10px 20px; text-decoration: none; color: #666; border-radius: 8px; font-weight: 500; }
+    .nav a:hover, .nav a.active { background: #800000; color: #fff; }
+    
+    .container { padding: 25px; max-width: 1400px; margin: 0 auto; }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; }
+    .stat-card.admission { border-top: 4px solid #28A745; }
+    .stat-card.transfer { border-top: 4px solid #FFC107; }
+    .stat-card.release { border-top: 4px solid #DC3545; }
+    .stat-card.court { border-top: 4px solid #17A2B8; }
+    .stat-card.total { border-top: 4px solid #800000; }
+    .stat-card h3 { color: #666; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-card .num { font-size: 2rem; font-weight: 700; color: #333; }
+    
+    .action-bar { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+    .action-btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .action-btn.add { background: #28A745; color: #fff; }
+    .action-btn.transfer { background: #FFC107; color: #333; }
+    .action-btn.release { background: #DC3545; color: #fff; }
+    .action-btn.court { background: #17A2B8; color: #fff; }
+    .action-btn:hover { opacity: 0.9; }
+    
+    .search-box { flex: 1; min-width: 250px; }
+    .search-box input { width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95rem; }
+    .search-box input:focus { outline: none; border-color: #800000; }
+    
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: #800000; color: #fff; padding: 15px 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .card-header .gold { color: #FFD700; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; color: #800000; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    tr:hover { background: #fafafa; }
+    
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .badge.admission { background: #D4EDDA; color: #155724; }
+    .badge.transfer { background: #FFF3CD; color: #856404; }
+    .badge.release { background: #F8D7DA; color: #721C24; }
+    .badge.court { background: #D1ECF1; color: #0C5460; }
+    .badge.active { background: #D4EDDA; color: #155724; }
+    .badge.completed { background: #E2E3E5; color: #383D41; }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h3 { color: #800000; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: inherit; }
+    .form-group input:focus { border-color: #800000; outline: none; }
+    
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: #800000; color: #FFD700; }
+    .btn-secondary { background: #eee; color: #333; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <img src="ups-logo.png" alt="UPS">
+      <div>
+        <h1>UGANDA PRISONS SERVICE</h1>
+        <span style="font-size: 0.8rem;">INMATE MANAGEMENT SYSTEM</span>
+      </div>
+    </div>
+    <a href="uganda_prisons_first_%20screen/index.html" style="color: #FFD700; text-decoration: none;">
+      <i class="fas fa-home"></i> Home
+    </a>
+  </header>
+  
+  <nav class="nav">
+    <a href="#" class="active" onclick="showTab('all')"><i class="fas fa-list"></i> All Records</a>
+    <a href="#" onclick="showTab('admission')"><i class="fas fa-user-plus"></i> Admissions</a>
+    <a href="#" onclick="showTab('transfer')"><i class="fas fa-exchange-alt"></i> Transfers</a>
+    <a href="#" onclick="showTab('release')"><i class="fas fa-user-minus"></i> Releases</a>
+    <a href="#" onclick="showTab('court')"><i class="fas fa-gavel"></i> Court</a>
+  </nav>
+  
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card admission">
+        <h3>Admissions</h3>
+        <div class="num" id="statAdmission">0</div>
+        <small>Today</small>
+      </div>
+      <div class="stat-card transfer">
+        <h3>Transfers</h3>
+        <div class="num" id="statTransfer">0</div>
+        <small>Today</small>
+      </div>
+      <div class="stat-card court">
+        <h3>Court</h3>
+        <div class="num" id="statCourt">0</div>
+        <small>Today</small>
+      </div>
+      <div class="stat-card release">
+        <h3>Releases</h3>
+        <div class="num" id="statRelease">0</div>
+        <small>Today</small>
+      </div>
+      <div class="stat-card total">
+        <h3>Total Inmates</h3>
+        <div class="num" id="statTotal">0</div>
+        <small>Currently</small>
+      </div>
+    </div>
+    
+    <div class="action-bar">
+      <button class="action-btn add" onclick="openModal('admission')">
+        <i class="fas fa-user-plus"></i> New Admission
+      </button>
+      <button class="action-btn transfer" onclick="openModal('transfer')">
+        <i class="fas fa-exchange-alt"></i> Transfer
+      </button>
+      <button class="action-btn court" onclick="openModal('court')">
+        <i class="fas fa-gavel"></i> Court Production
+      </button>
+      <button class="action-btn release" onclick="openModal('release')">
+        <i class="fas fa-user-minus"></i> Release
+      </button>
+      <div class="search-box">
+        <input type="text" id="searchInmate" placeholder="Search by name, number, crime..." oninput="renderTable()">
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fas fa-users"></i> <span class="gold">Inmate Records</span></span>
+        <span id="recordCount" style="opacity: 0.8; font-size: 0.9rem;">0 records</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Date/Time</th>
+            <th>Inmate No.</th>
+            <th>Name</th>
+            <th>Crime/Offense</th>
+            <th>Action</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inmateTable">
+          <tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal" id="inmateModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">New Admission</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label>Inmate Number *</label>
+        <input type="text" id="inmateNo" placeholder="e.g. INV/2026/0001">
+      </div>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="inmateName" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="inmateGender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Crime/Offense *</label>
+        <input type="text" id="inmateCrime" placeholder="Nature of crime">
+      </div>
+      <div class="form-group">
+        <label>Cell Block</label>
+        <select id="inmateBlock">
+          <option value="A">Block A</option>
+          <option value="B">Block B</option>
+          <option value="C">Block C</option>
+          <option value="D">Block D</option>
+          <option value="Remand">Remand Wing</option>
+          <option value="Female">Female Wing</option>
+        </select>
+      </div>
+      <div class="form-group" id="destGroup" style="display:none;">
+        <label>Destination/To Prison</label>
+        <input type="text" id="inmateDest" placeholder="Destination prison">
+      </div>
+      <div class="form-group" id="courtGroup" style="display:none;">
+        <label>Court Name</label>
+        <input type="text" id="inmateCourt" placeholder="e.g. High Court">
+      </div>
+      <div class="form-group" id="reasonGroup" style="display:none;">
+        <label>Release Reason</label>
+        <select id="releaseReason">
+          <option value="completed">Sentence Completed</option>
+          <option value="parole">Parole</option>
+          <option value="pardon">Presidential Pardon</option>
+          <option value="acquitted">Acquitted</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveInmate()">Save Record</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ups_inmate_records';
+    let inmates = [];
+    let currentAction = 'admission';
+    
+    function loadData() {
+      inmates = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (inmates.length === 0) {
+        // Demo data
+        inmates = [
+          {id: 1, no: 'INV/2025/4521', name: 'John Okello', gender: 'Male', crime: 'Theft', block: 'A', action: 'admission', location: 'Block A Cell 12', status: 'active', date: '2025-01-15'},
+          {id: 2, no: 'INV/2025/4522', name: 'Mary Atwoki', gender: 'Female', crime: 'Fraud', block: 'Female', action: 'admission', location: 'Female Wing', status: 'active', date: '2025-02-20'},
+          {id: 3, no: 'INV/2024/3301', name: 'Peter Ssali', gender: 'Male', crime: 'Assault', block: 'B', action: 'court', location: 'High Court', status: 'active', date: '2025-03-10'},
+        ];
+        saveData();
+      }
+      updateStats();
+      renderTable();
+    }
+    
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(inmates));
+    }
+    
+    function updateStats() {
+      const today = new Date().toISOString().split('T')[0];
+      
+      document.getElementById('statAdmission').textContent = inmates.filter(i => i.action === 'admission' && i.date === today).length;
+      document.getElementById('statTransfer').textContent = inmates.filter(i => i.action === 'transfer' && i.date === today).length;
+      document.getElementById('statCourt').textContent = inmates.filter(i => i.action === 'court' && i.date === today).length;
+      document.getElementById('statRelease').textContent = inmates.filter(i => i.action === 'release' && i.date === today).length;
+      document.getElementById('statTotal').textContent = inmates.filter(i => i.status === 'active').length;
+    }
+    
+    function renderTable() {
+      const search = document.getElementById('searchInmate').value.toLowerCase();
+      const filtered = inmates.filter(i => {
+        return !search || 
+          i.name.toLowerCase().includes(search) || 
+          i.no.toLowerCase().includes(search) ||
+          i.crime.toLowerCase().includes(search);
+      });
+      
+      document.getElementById('recordCount').textContent = filtered.length + ' records';
+      
+      const tbody = document.getElementById('inmateTable');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">No records found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(i => {
+        let badge = i.action;
+        let location = i.location;
+        
+        return `<tr>
+          <td>${i.date}</td>
+          <td><strong>${i.no}</strong></td>
+          <td>${i.name}</td>
+          <td>${i.crime}</td>
+          <td><span class="badge ${badge}">${i.action.toUpperCase()}</span></td>
+          <td>${location}</td>
+          <td><span class="badge ${i.status}">${i.status.toUpperCase()}</span></td>
+          <td>
+            <button onclick="viewInmate('${i.no}')" style="background:#800000;color:#FFD700;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-right:5px;">
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function openModal(action) {
+      currentAction = action;
+      document.getElementById('inmateModal').classList.add('show');
+      
+      const titles = {
+        admission: 'New Admission',
+        transfer: 'Transfer Inmate',
+        court: 'Court Production',
+        release: 'Release Inmate'
+      };
+      document.getElementById('modalTitle').textContent = titles[action];
+      
+      // Show/hide relevant fields
+      document.getElementById('destGroup').style.display = action === 'transfer' ? 'block' : 'none';
+      document.getElementById('courtGroup').style.display = action === 'court' ? 'block' : 'none';
+      document.getElementById('reasonGroup').style.display = action === 'release' ? 'block' : 'none';
+      
+      // Clear form
+      document.getElementById('inmateNo').value = '';
+      document.getElementById('inmateName').value = '';
+      document.getElementById('inmateCrime').value = '';
+      document.getElementById('inmateDest').value = '';
+      document.getElementById('inmateCourt').value = '';
+    }
+    
+    function closeModal() {
+      document.getElementById('inmateModal').classList.remove('show');
+    }
+    
+    function saveInmate() {
+      const no = document.getElementById('inmateNo').value.trim();
+      const name = document.getElementById('inmateName').value.trim();
+      const crime = document.getElementById('inmateCrime').value.trim();
+      
+      if (!no || !name || !crime) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      
+      let location = '';
+      if (currentAction === 'admission') {
+        location = 'Block ' + document.getElementById('inmateBlock').value;
+      } else if (currentAction === 'transfer') {
+        location = document.getElementById('inmateDest').value;
+      } else if (currentAction === 'court') {
+        location = document.getElementById('inmateCourt').value || 'Court';
+      } else if (currentAction === 'release') {
+        location = 'Released';
+      }
+      
+      const inmate = {
+        id: Date.now(),
+        no: no,
+        name: name,
+        gender: document.getElementById('inmateGender').value,
+        crime: crime,
+        block: document.getElementById('inmateBlock').value,
+        action: currentAction,
+        location: location,
+        status: currentAction === 'release' ? 'released' : 'active',
+        date: new Date().toISOString().split('T')[0]
+      };
+      
+      inmates.unshift(inmate);
+      saveData();
+      updateStats();
+      renderTable();
+      closeModal();
+      alert('Record saved successfully');
+    }
+    
+    function viewInmate(no) {
+      const inmate = inmates.find(i => i.no === no);
+      if (inmate) {
+        alert(`Inmate: ${inmate.name}\nNumber: ${inmate.no}\nCrime: ${inmate.crime}\nLocation: ${inmate.location}`);
+      }
+    }
+    
+    let currentTab = 'all';
+    function showTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+      event.target.closest('a').classList.add('active');
+      renderTable();
+    }
+    
+    loadData();
+  </script>
+</body>
+</html>

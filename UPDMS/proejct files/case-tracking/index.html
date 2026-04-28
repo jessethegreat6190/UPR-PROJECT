@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Case Tracking System - Police to Court to Prison</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    
+    .header { background: linear-gradient(135deg, #800000 0%, #600000 100%); color: #fff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.3rem; }
+    .gold { color: #FFD700; }
+    
+    .container { padding: 25px; max-width: 1400px; margin: 0 auto; }
+    
+    .workflow { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .workflow-step { flex: 1; text-align: center; padding: 15px; border-radius: 10px; background: #f0f0f0; }
+    .workflow-step.active { background: #800000; color: #FFD700; }
+    .workflow-step.completed { background: #28A745; color: #fff; }
+    .workflow-step i { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+    .workflow-step span { font-weight: 600; }
+    .workflow-arrow { font-size: 1.5rem; color: #999; align-self: center; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; }
+    .stat-card.police { border-top: 4px solid #0D6EFD; }
+    .stat-card.court { border-top: 4px solid #6F42C1; }
+    .stat-card.prison { border-top: 4px solid #DC3545; }
+    .stat-card.release { border-top: 4px solid #198754; }
+    .stat-card h3 { color: #666; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-card .num { font-size: 2rem; font-weight: 700; color: #333; }
+    
+    .search-box { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; gap: 15px; }
+    .search-box input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; }
+    .search-box input:focus { border-color: #800000; outline: none; }
+    .search-btn { background: #800000; color: #FFD700; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; }
+    
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: #800000; color: #fff; padding: 15px 20px; font-weight: 600; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; color: #800000; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .badge.police { background: #0D6EFD; color: #fff; }
+    .badge.court { background: #6F42C1; color: #fff; }
+    .badge.prison { background: #DC3545; color: #fff; }
+    .badge.released { background: #198754; color: #fff; }
+    .badge.pending { background: #FFC107; color: #333; }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; }
+    
+    .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: #800000; color: #FFD700; }
+    .btn-secondary { background: #eee; color: #333; }
+    
+    .detail-view { padding: 20px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .detail-item { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+    .detail-item label { display: block; color: #666; font-size: 0.75rem; text-transform: uppercase; }
+    .detail-item span { font-weight: 600; color: #333; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <img src="ups-logo.png" alt="UPS" style="height: 40px;">
+      <div>
+        <h1>UGANDA PRISONS SERVICE</h1>
+        <span style="font-size: 0.8rem;">CASE TRACKING SYSTEM</span>
+      </div>
+    </div>
+    <a href="uganda_prisons_first_%20screen/index.html" style="color: #FFD700; text-decoration: none;">
+      <i class="fas fa-home"></i> Home
+    </a>
+  </header>
+  
+  <div class="container">
+    <!-- Workflow -->
+    <div class="workflow">
+      <div class="workflow-step active">
+        <i class="fas fa-user-shield"></i>
+        <span>POLICE</span>
+        <div>Arrest & Investigation</div>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <i class="fas fa-gavel"></i>
+        <span>COURT</span>
+        <div>Trial & Judgment</div>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <i class="fas fa-building"></i>
+        <span>PRISON</span>
+        <div>Custody & Rehabilitation</div>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <i class="fas fa-walking"></i>
+        <span>RELEASE</span>
+        <div>Parole or Sentence End</div>
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card police">
+        <h3>Police Custody</h3>
+        <div class="num" id="statPolice">0</div>
+        <small>Under Investigation</small>
+      </div>
+      <div class="stat-card court">
+        <h3>Court Cases</h3>
+        <div class="num" id="statCourt">0</div>
+        <small>Awaiting Trial</small>
+      </div>
+      <div class="stat-card prison">
+        <h3>Prison Custody</h3>
+        <div class="num" id="statPrison">0</div>
+        <small>Serving Sentence</small>
+      </div>
+      <div class="stat-card release">
+        <h3>Released</h3>
+        <div class="num" id="statReleased">0</div>
+        <small>This Year</small>
+      </div>
+    </div>
+    
+    <!-- Search -->
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by: Name, Case No., National ID, Phone..." oninput="searchCases()">
+      <button class="search-btn" onclick="searchCases()">
+        <i class="fas fa-search"></i> Search
+      </button>
+    </div>
+    
+    <div class="search-box" style="margin-top: 15px;">
+      <button class="search-btn" style="background:#0D6EFD;" onclick="openModal('police')">
+        <i class="fas fa-plus"></i> New Police Case
+      </button>
+      <button class="search-btn" style="background:#6F42C1;" onclick="openModal('court')">
+        <i class="fas fa-gavel"></i> Court Hearing
+      </button>
+      <button class="search-btn" style="background:#800000;" onclick="openModal('prison')">
+        <i class="fas fa-building"></i> Prison Admission
+      </button>
+      <button class="search-btn" style="background:#198754;" onclick="openModal('release')">
+        <i class="fas fa-walking"></i> Release
+      </button>
+    </div>
+    
+    <!-- Cases Table -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-list"></i> Case Records
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Case No.</th>
+            <th>Name</th>
+            <th>Offense</th>
+            <th>Current Stage</th>
+            <th>Location</th>
+            <th>Last Update</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="casesTable">
+          <tr><td colspan="7" style="text-align: center; padding: 40px; color: #999;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal" id="caseModal">
+    <div class="modal-content">
+      <h3 id="modalTitle" style="color: #800000; margin-bottom: 20px;">New Case Entry</h3>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="caseName" placeholder="Accused/Defendant name">
+      </div>
+      <div class="form-group">
+        <label>National ID</label>
+        <input type="text" id="caseNIN" placeholder="CM9010001234">
+      </div>
+      <div class="form-group">
+        <label>Offense *</label>
+        <input type="text" id="caseCrime" placeholder="Nature of crime">
+      </div>
+      <div class="form-group">
+        <label>Police Station</label>
+        <input type="text" id="caseStation" placeholder="e.g. Katwe Police Station">
+      </div>
+      <div class="form-group">
+        <label>Case File No.</label>
+        <input type="text" id="caseFile" placeholder="e.g. SD/2026/0123">
+      </div>
+      <div id="courtFields" style="display:none;">
+        <div class="form-group">
+          <label>Court Name</label>
+          <input type="text" id="courtName" placeholder="e.g. Magistrate Court">
+        </div>
+        <div class="form-group">
+          <label>Judgment</label>
+          <select id="judgment">
+            <option value="guilty">Guilty</option>
+            <option value="acquitted">Acquitted</option>
+            <option value="adjourned">Adjourned</option>
+          </select>
+        </div>
+      </div>
+      <div id="prisonFields" style="display:none;">
+        <div class="form-group">
+          <label>Prison Block/Wing</label>
+          <select id="prisonBlock">
+            <option value="A">Block A</option>
+            <option value="B">Block B</option>
+            <option value="C">Block C</option>
+            <option value="Remand">Remand Wing</option>
+            <option value="Female">Female Wing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sentence (Years)</label>
+          <input type="number" id="sentenceYears" placeholder="e.g. 3">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="caseNotes" rows="3" placeholder="Additional details"></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCase()">Save Record</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ups_case_tracking';
+    let cases = [];
+    let currentStage = 'police';
+    
+    function loadData() {
+      cases = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      if (cases.length === 0) {
+        // Demo data
+        cases = [
+          {id: 1, name: 'John Okello', nin: 'CM9012345', offense: 'Theft', stage: 'police', station: 'Katwe', caseNo: 'POL-2026-001', date: '2026-04-01', notes: 'Under investigation'},
+          {id: 2, name: 'Mary Atwoki', nin: 'CM9012346', offense: 'Fraud', stage: 'court', court: 'High Court', caseNo: 'CR-2026-045', date: '2026-03-15', notes: 'First hearing scheduled'},
+          {id: 3, name: 'Peter Ssali', nin: 'CM9012347', offense: 'Assault', stage: 'prison', block: 'A', caseNo: 'PRI-2026-089', date: '2026-02-20', sentence: 2, notes: 'Serving sentence'},
+          {id: 4, name: 'Sarah Namubi', nin: 'CM9012348', offense: 'Robbery', stage: 'prison', block: 'Remand', caseNo: 'PRI-2025-234', date: '2025-11-10', sentence: 3, notes: 'Awaiting appeal'},
+          {id: 5, name: 'James Oketcho', nin: 'CM9012349', offense: 'Murder', stage: 'prison', block: 'C', caseNo: 'PRI-2024-567', date: '2024-08-05', sentence: 15, notes: 'High security'},
+        ];
+        saveData();
+      }
+      updateStats();
+      renderTable();
+    }
+    
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+    }
+    
+    function updateStats() {
+      document.getElementById('statPolice').textContent = cases.filter(c => c.stage === 'police').length;
+      document.getElementById('statCourt').textContent = cases.filter(c => c.stage === 'court').length;
+      document.getElementById('statPrison').textContent = cases.filter(c => c.stage === 'prison').length;
+      document.getElementById('statReleased').textContent = cases.filter(c => c.stage === 'released').length;
+    }
+    
+    function renderTable() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = cases.filter(c => {
+        return !search || 
+          c.name.toLowerCase().includes(search) || 
+          c.caseNo.toLowerCase().includes(search) ||
+          (c.nin || '').toLowerCase().includes(search);
+      });
+      
+      const tbody = document.getElementById('casesTable');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #999;">No cases found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(c => {
+        let stageBadge = c.stage;
+        let location = c.stage === 'police' ? c.station : 
+                      c.stage === 'court' ? c.court : 
+                      c.stage === 'prison' ? 'Block ' + c.block : 'Released';
+        
+        return `<tr>
+          <td><strong>${c.caseNo}</strong></td>
+          <td>${c.name}</td>
+          <td>${c.offense}</td>
+          <td><span class="badge ${stageBadge}">${stageBadge.toUpperCase()}</span></td>
+          <td>${location}</td>
+          <td>${c.date}</td>
+          <td>
+            <button onclick="viewCase(${c.id})" style="background:#800000;color:#FFD700;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">View</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function searchCases() {
+      renderTable();
+    }
+    
+    function openModal(stage) {
+      currentStage = stage;
+      document.getElementById('caseModal').classList.add('show');
+      
+      const titles = {
+        police: 'New Police Case',
+        court: 'Court Hearing Update',
+        prison: 'Prison Admission',
+        release: 'Release/D Discharge'
+      };
+      document.getElementById('modalTitle').textContent = titles[stage];
+      
+      document.getElementById('courtFields').style.display = stage === 'court' ? 'block' : 'none';
+      document.getElementById('prisonFields').style.display = stage === 'prison' ? 'block' : 'none';
+    }
+    
+    function closeModal() {
+      document.getElementById('caseModal').classList.remove('show');
+    }
+    
+    function saveCase() {
+      const name = document.getElementById('caseName').value.trim();
+      const offense = document.getElementById('caseCrime').value.trim();
+      
+      if (!name || !offense) {
+        alert('Please fill in required fields');
+        return;
+      }
+      
+      const caseNo = currentStage.toUpperCase() + '-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+      
+      const newCase = {
+        id: Date.now(),
+        name: name,
+        nin: document.getElementById('caseNIN').value,
+        offense: offense,
+        stage: currentStage,
+        caseNo: caseNo,
+        date: new Date().toISOString().split('T')[0],
+        station: document.getElementById('caseStation').value,
+        court: document.getElementById('courtName').value,
+        block: document.getElementById('prisonBlock').value,
+        sentence: document.getElementById('sentenceYears').value,
+        notes: document.getElementById('caseNotes').value
+      };
+      
+      cases.unshift(newCase);
+      saveData();
+      updateStats();
+      renderTable();
+      closeModal();
+      alert('Case saved: ' + caseNo);
+    }
+    
+    function viewCase(id) {
+      const c = cases.find(x => x.id === id);
+      if (c) {
+        alert(`Case: ${c.caseNo}\nName: ${c.name}\nOffense: ${c.offense}\nStage: ${c.stage}\nLocation: ${c.station || c.court || c.block || 'N/A'}\nDate: ${c.date}`);
+      }
+    }
+    
+    loadData();
+  </script>
+</body>
+</html>

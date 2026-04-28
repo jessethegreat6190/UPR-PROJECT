@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>HQ Dashboard - Uganda Prisons</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #800000 0%, #600000 100%); color: #fff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.5rem; }
+    .header .logo { display: flex; align-items: center; gap: 15px; }
+    .header img { height: 50px; }
+    .gold { color: #FFD700; }
+    
+    .container { padding: 25px; max-width: 1600px; margin: 0 auto; }
+    
+    .alert-banner { background: linear-gradient(90deg, #DC3545, #C82333); color: #fff; padding: 15px 25px; border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+    .alert-banner .count { font-size: 2rem; font-weight: 800; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; }
+    .stat-card.inmate { border-top: 4px solid #800000; }
+    .stat-card.general { border-top: 4px solid #28A745; }
+    .stat-card.vehicle { border-top: 4px solid #FFC107; }
+    .stat-card.hospital { border-top: 4px solid #17A2B8; }
+    .stat-card.official { border-top: 4px solid #6F42C1; }
+    .stat-card.overstay { border-top: 4px solid #DC3545; background: #FFF5F5; }
+    .stat-card h3 { color: #666; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-card .num { font-size: 2.2rem; font-weight: 700; color: #333; }
+    .stat-card.overstay .num { color: #DC3545; }
+    
+    .section { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; overflow: hidden; }
+    .section-header { background: #800000; color: #fff; padding: 15px 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .section-header .gold { color: #FFD700; }
+    
+    .filters { padding: 15px 20px; background: #f8f9fa; display: flex; gap: 10px; flex-wrap: wrap; }
+    .filters input, .filters select { padding: 10px 15px; border: 2px solid #ddd; border-radius: 8px; }
+    .filters input { flex: 1; min-width: 200px; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; color: #800000; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    tr:hover { background: #fafafa; }
+    
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .badge.inmate { background: #800000; color: #FFD700; }
+    .badge.general { background: #28A745; color: #fff; }
+    .badge.vehicle { background: #FFC107; color: #333; }
+    .badge.hospital { background: #17A2B8; color: #fff; }
+    .badge.official { background: #6F42C1; color: #fff; }
+    .badge.inside { background: #D4EDDA; color: #155724; }
+    .badge.exited { background: #E2E3E5; color: #383D41; }
+    .badge.overstay { background: #F8D7DA; color: #721C24; }
+    
+    .detail-row { background: #f8f9fa; }
+    .detail-row td { padding: 20px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .detail-item { background: #fff; padding: 15px; border-radius: 8px; border-left: 3px solid #800000; }
+    .detail-item label { display: block; color: #666; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; }
+    .detail-item span { font-weight: 600; color: #333; }
+    
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+    .chart-card { background: #f8f9fa; padding: 20px; border-radius: 8px; }
+    .chart-card h4 { color: #800000; margin-bottom: 15px; }
+    
+    .export-btn { background: #28A745; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .export-btn:hover { background: #218838; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img src="ups-logo.png" alt="UPS">
+      <div>
+        <h1>UGANDA PRISONS SERVICE</h1>
+        <span style="font-size: 0.85rem;">HEADQUARTERS CONTROL CENTER</span>
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <div id="liveClock" style="font-size: 1.2rem; font-weight: 600;"></div>
+      <div style="font-size: 0.8rem; opacity: 0.8;">HQ Administrator View</div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <!-- Overstay Alert -->
+    <div class="alert-banner" id="alertBanner" style="display: none;">
+      <div>
+        <h2><i class="fas fa-exclamation-triangle"></i> ⚠️ SECURITY ALERT - OVERSTAYING VISITORS</h2>
+        <p>The following visitors/vehicles have been inside for more than 2 days without exiting:</p>
+      </div>
+      <div class="count" id="overstayCount">0</div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card inmate">
+        <h3>Visit Inmate</h3>
+        <div class="num" id="inmateInside">0</div>
+        <small>Currently Inside</small>
+      </div>
+      <div class="stat-card general">
+        <h3>General Visits</h3>
+        <div class="num" id="generalInside">0</div>
+        <small>Currently Inside</small>
+      </div>
+      <div class="stat-card vehicle">
+        <h3>Vehicles</h3>
+        <div class="num" id="vehicleInside">0</div>
+        <small>Currently Inside</small>
+      </div>
+      <div class="stat-card hospital">
+        <h3>Hospital</h3>
+        <div class="num" id="hospitalInside">0</div>
+        <small>Currently Inside</small>
+      </div>
+      <div class="stat-card official">
+        <h3>Official</h3>
+        <div class="num" id="officialInside">0</div>
+        <small>Currently Inside</small>
+      </div>
+      <div class="stat-card overstay">
+        <h3>⚠️ Overstay</h3>
+        <div class="num" id="overstayNum">0</div>
+        <small>2+ Days Inside</small>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-header">
+        <span><i class="fas fa-database"></i> <span class="gold">Complete Entry/Exit Log</span></span>
+        <button class="export-btn" onclick="exportData()"><i class="fas fa-download"></i> Export</button>
+      </div>
+      
+      <div class="filters">
+        <input type="text" id="searchAll" placeholder="Search by name, ref, phone, plate..." oninput="renderAllEntries()">
+        <select id="filterCategory" onchange="renderAllEntries()">
+          <option value="">All Categories</option>
+          <option value="inmate">Visit Inmate</option>
+          <option value="general">General Visit</option>
+          <option value="vehicle">Vehicle</option>
+          <option value="hospital">Hospital</option>
+          <option value="official">Official Visit</option>
+        </select>
+        <select id="filterStatus" onchange="renderAllEntries()">
+          <option value="">All Status</option>
+          <option value="inside">Inside</option>
+          <option value="exited">Exited</option>
+          <option value="overstay">Overstay</option>
+        </select>
+        <input type="date" id="filterDate" onchange="renderAllEntries()">
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Entry Time</th>
+            <th>Exit Time</th>
+            <th>Ref Number</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Category</th>
+            <th>Destination</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="allEntriesTable">
+          <tr><td colspan="9" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="charts">
+      <div class="chart-card">
+        <h4><i class="fas fa-chart-pie"></i> Entries by Category (Today)</h4>
+        <div id="categoryChart"></div>
+      </div>
+      <div class="chart-card">
+        <h4><i class="fas fa-clock"></i> Peak Hours</h4>
+        <div id="hoursChart"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ups_all_entries';
+    let allData = [];
+    
+    function loadAllData() {
+      allData = [];
+      
+      // Load vehicles
+      const vehicles = JSON.parse(localStorage.getItem('ups_vehicle_entries') || '[]');
+      vehicles.forEach(v => {
+        allData.push({
+          ref: v.ref,
+          name: v.driver,
+          phone: v.phone,
+          category: 'Vehicle',
+          categoryType: 'vehicle',
+          subCategory: v.plate + ' (' + v.type + ')',
+          destination: v.company,
+          purpose: v.purpose,
+          passengers: v.passengerCount,
+          plate: v.plate,
+          timeIn: v.time,
+          timeOut: v.timeOut,
+          status: v.status || 'inside'
+        });
+      });
+      
+      // Load visits
+      const visits = JSON.parse(localStorage.getItem('ups_active_visits') || '[]');
+      visits.forEach(v => {
+        let catType = 'inmate';
+        if (v.module === 'general') catType = 'general';
+        if (v.module === 'hospital') catType = 'hospital';
+        if (v.module === 'official') catType = 'official';
+        
+        allData.push({
+          ref: v.ref,
+          name: v.name,
+          phone: v.phone,
+          category: v.module === 'inmate' ? 'Visit Inmate' : 
+                   v.module === 'hospital' ? 'Hospital' :
+                   v.module === 'official' ? 'Official Visit' : 'General Visit',
+          categoryType: catType,
+          destination: v.destination,
+          timeIn: v.timeIn,
+          timeOut: v.timeOut,
+          status: v.status === 'signed_out' ? 'exited' : v.status
+        });
+      });
+      
+      // Load general visits
+      const gen = JSON.parse(localStorage.getItem('ups_general_visits') || '[]');
+      gen.forEach(v => {
+        allData.push({...v, category: 'General Visit', categoryType: 'general', status: v.status || 'inside'});
+      });
+      
+      // Load hospital
+      const hosp = JSON.parse(localStorage.getItem('ups_hospital_visits') || '[]');
+      hosp.forEach(v => {
+        allData.push({...v, category: 'Hospital', categoryType: 'hospital', status: v.status || 'inside'});
+      });
+      
+      // Load official
+      const off = JSON.parse(localStorage.getItem('ups_official_visits') || '[]');
+      off.forEach(v => {
+        allData.push({...v, category: 'Official Visit', categoryType: 'official', status: v.status || 'inside'});
+      });
+      
+      calculateStats();
+      renderAllEntries();
+    }
+    
+    function calculateStats() {
+      const now = new Date();
+      const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
+      
+      let inmate = 0, general = 0, vehicle = 0, hospital = 0, official = 0, overstay = 0;
+      
+      allData.forEach(d => {
+        if (d.status === 'inside' || d.status === 'active') {
+          const entry = new Date(d.timeIn);
+          if (entry < twoDaysAgo) {
+            overstay++;
+            d.status = 'overstay';
+          }
+        }
+        
+        if (d.categoryType === 'inmate' && d.status === 'inside') inmate++;
+        else if (d.categoryType === 'general' && d.status === 'inside') general++;
+        else if (d.categoryType === 'vehicle' && d.status === 'inside') vehicle++;
+        else if (d.categoryType === 'hospital' && d.status === 'inside') hospital++;
+        else if (d.categoryType === 'official' && d.status === 'inside') official++;
+      });
+      
+      document.getElementById('inmateInside').textContent = inmate;
+      document.getElementById('generalInside').textContent = general;
+      document.getElementById('vehicleInside').textContent = vehicle;
+      document.getElementById('hospitalInside').textContent = hospital;
+      document.getElementById('officialInside').textContent = official;
+      document.getElementById('overstayNum').textContent = overstay;
+      
+      const banner = document.getElementById('alertBanner');
+      if (overstay > 0) {
+        banner.style.display = 'flex';
+        document.getElementById('overstayCount').textContent = overstay;
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+    
+    function renderAllEntries() {
+      const search = document.getElementById('searchAll').value.toLowerCase();
+      const catFilter = document.getElementById('filterCategory').value;
+      const statusFilter = document.getElementById('filterStatus').value;
+      const dateFilter = document.getElementById('filterDate').value;
+      
+      let filtered = allData.filter(d => {
+        const matchSearch = !search || 
+          (d.name || '').toLowerCase().includes(search) ||
+          (d.ref || '').toLowerCase().includes(search) ||
+          (d.phone || '').includes(search) ||
+          (d.plate || '').toLowerCase().includes(search);
+        
+        const matchCat = !catFilter || d.categoryType === catFilter;
+        const matchStatus = !statusFilter || d.status === statusFilter;
+        const matchDate = !dateFilter || (d.timeIn && d.timeIn.startsWith(dateFilter));
+        
+        return matchSearch && matchCat && matchStatus && matchDate;
+      });
+      
+      const tbody = document.getElementById('allEntriesTable');
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #999;">No records found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.slice(0, 100).map(d => {
+        const entryTime = d.timeIn ? new Date(d.timeIn).toLocaleString() : '-';
+        const exitTime = d.timeOut ? new Date(d.timeOut).toLocaleString() : '-';
+        
+        let duration = '-';
+        if (d.timeIn) {
+          const start = new Date(d.timeIn);
+          const end = d.timeOut ? new Date(d.timeOut) : new Date();
+          const diff = Math.floor((end - start) / 60000);
+          if (diff < 60) duration = diff + ' min';
+          else duration = Math.floor(diff / 60) + 'h ' + (diff % 60) + 'm';
+        }
+        
+        let statusBadge = d.status;
+        if (d.status === 'inside' || d.status === 'active') {
+          const entry = new Date(d.timeIn);
+          const now = new Date();
+          const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
+          if (entry < twoDaysAgo) statusBadge = 'overstay';
+        }
+        
+        return `<tr>
+          <td>${entryTime}</td>
+          <td>${exitTime}</td>
+          <td><strong>${d.ref || 'N/A'}</strong></td>
+          <td>${d.name || 'N/A'}</td>
+          <td>${d.phone || '-'}</td>
+          <td><span class="badge ${d.categoryType}">${d.category}</span></td>
+          <td>${d.destination || '-'}</td>
+          <td>${duration}</td>
+          <td><span class="badge ${statusBadge}">${statusBadge.toUpperCase()}</span></td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function exportData() {
+      let csv = 'Entry Time,Exit Time,Ref Number,Name,Phone,Category,Destination,Status\n';
+      allData.forEach(d => {
+        csv += `"${d.timeIn || ''}","${d.timeOut || ''}","${d.ref || ''}","${d.name || ''}","${d.phone || ''}","${d.category}","${d.destination || ''}","${d.status}"\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gate_records_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+    }
+    
+    setInterval(() => {
+      document.getElementById('liveClock').textContent = new Date().toLocaleString();
+    }, 1000);
+    
+    loadAllData();
+  </script>
+</body>
+</html>
