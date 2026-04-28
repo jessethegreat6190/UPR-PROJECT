@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Vehicle Entry - Uganda Prisons</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/globals.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.min.js"></script>
+  <style>
+    body { background: var(--prison-light); padding: 0; margin: 0; font-family: var(--font-body); }
+    .page-header { background: var(--prison-maroon); color: #fff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
+    .page-header h1 { color: var(--prison-gold); font-size: 1.2rem; margin: 0; }
+    .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .form-card { background: #fff; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+    .form-card h3 { color: var(--prison-maroon); margin: 0 0 15px 0; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 5px; color: var(--prison-maroon-dark); font-size: 0.9rem; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: var(--radius-sm); font-family: inherit; }
+    .form-group input:focus { border-color: var(--prison-maroon); outline: none; }
+    .btn { background: var(--prison-maroon); color: var(--prison-gold); border: none; padding: 14px 24px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; font-size: 1rem; }
+    .btn:hover { background: var(--prison-maroon-dark); }
+    
+    .camera-box { border: 3px dashed var(--prison-gold); border-radius: var(--radius-md); padding: 20px; text-align: center; background: #fafafa; margin-bottom: 15px; }
+    .camera-box video { width: 100%; max-width: 300px; border-radius: var(--radius-sm); }
+    .camera-box canvas { display: none; }
+    .camera-result { margin-top: 10px; }
+    .detected-face { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--prison-gold); object-fit: cover; }
+    
+    .passenger-row { display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border-radius: var(--radius-sm); }
+    .passenger-row input { flex: 1; }
+    .passenger-row .passenger-photo { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid #ddd; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .stat-box { background: var(--prison-maroon); color: #fff; padding: 20px; border-radius: var(--radius-md); text-align: center; }
+    .stat-box .num { font-size: 2rem; font-weight: 800; color: var(--prison-gold); }
+    .stat-box .label { font-size: 0.8rem; }
+    
+    .vehicle-list { margin-top: 20px; }
+    .vehicle-item { background: #fff; padding: 15px; border-radius: var(--radius-sm); margin-bottom: 10px; border-left: 4px solid var(--prison-gold); }
+    .vehicle-item .plate { font-weight: 700; font-size: 1.1rem; color: var(--prison-maroon); font-family: monospace; }
+    .vehicle-item .info { font-size: 0.85rem; color: #666; }
+    .vehicle-item .passengers { font-size: 0.8rem; color: #888; }
+    
+    .ref-display { background: var(--prison-maroon); color: var(--prison-gold); padding: 15px; border-radius: var(--radius-sm); text-align: center; margin-top: 15px; }
+    .ref-display .ref-num { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; }
+    
+    .row { display: flex; gap: 15px; }
+    .row > * { flex: 1; }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <img src="../uganda_prisons_first_%20screen/ups-logo.png" alt="UPS" style="height: 35px;">
+      <h1>VEHICLE ENTRY / EXIT</h1>
+    </div>
+    <a href="../uganda_prisons_first_%20screen/index.html" style="color: var(--prison-gold); text-decoration: none;">
+      <i class="fas fa-home"></i> Home
+    </a>
+  </header>
+
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="num" id="totalEntries">0</div>
+        <div class="label">Total Entries Today</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="vehiclesInside">0</div>
+        <div class="label">Vehicles Inside</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="peopleInside">0</div>
+        <div class="label">People Inside</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="exitsToday">0</div>
+        <div class="label">Exits Today</div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3><i class="fas fa-car"></i> Vehicle Entry / Exit Registration</h3>
+      
+      <div class="form-group">
+        <label>Entry or Exit? *</label>
+        <select id="entryType" onchange="toggleMode()">
+          <option value="entry">Entry IN</option>
+          <option value="exit">Exit OUT</option>
+        </select>
+      </div>
+      
+      <div class="row">
+        <div class="form-group">
+          <label>Vehicle Plate *</label>
+          <input type="text" id="v-plate" placeholder="e.g. UAA 123X" style="text-transform: uppercase; font-size: 1.2rem; text-align: center;">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Type</label>
+          <select id="v-type">
+            <option value="car">Car/Saloon</option>
+            <option value="van">Van/Minibus</option>
+            <option value="truck">Truck/Lorry</option>
+            <option value="motorcycle">Motorcycle</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Company / Organization</label>
+        <input type="text" id="v-company" placeholder="Company name">
+      </div>
+      
+      <div class="form-group">
+        <label>Driver Name *</label>
+        <input type="text" id="v-driver" placeholder="Driver's full name">
+      </div>
+      
+      <div class="row">
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="v-phone" placeholder="+256 7XX XXX XXX">
+        </div>
+        <div class="form-group">
+          <label>Purpose</label>
+          <select id="v-purpose">
+            <option value="delivery">Delivery</option>
+            <option value="service">Service/Maintenance</option>
+            <option value="official">Official</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Number of Passengers (including driver) *</label>
+        <input type="number" id="passengerCount" min="1" max="50" value="1" onchange="generatePassengerFields()">
+      </div>
+      
+      <div id="passengerFields"></div>
+      
+      <div class="form-group">
+        <label>Vehicle Photo (Optional - Camera will auto-capture)</label>
+        <div class="camera-box" id="cameraBox">
+          <video id="video" autoplay playsinline></video>
+          <canvas id="canvas"></canvas>
+          <div id="cameraResult"></div>
+          <button type="button" onclick="startCamera()" class="btn" style="margin-top: 10px;">
+            <i class="fas fa-camera"></i> Start Camera
+          </button>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="registerVehicleEntry()" style="width: 100%; margin-top: 15px;">
+        <i class="fas fa-save"></i> <span id="btnText">Register Entry</span>
+      </button>
+      
+      <div id="refDisplay" class="ref-display" style="display: none;">
+        <div>Reference Number</div>
+        <div class="ref-num" id="refNumber"></div>
+        <div style="font-size: 0.8rem; margin-top: 5px;">Time: <span id="refTime"></span></div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3><i class="fas fa-list"></i> Recent Vehicle Entries</h3>
+      <div id="vehicleList"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/registration.js"></script>
+  <script>
+    const STORAGE_KEY = 'ups_vehicle_entries';
+    let passengerData = [];
+    let camera = null;
+    let faceDetector = null;
+    
+    function generateRef() {
+      const date = new Date();
+      const dateStr = date.getFullYear() + String(date.getMonth()+1).padStart(2,'0') + String(date.getDate()).padStart(2,'0');
+      const timeStr = String(date.getHours()).padStart(2,'0') + String(date.getMinutes()).padStart(2,'0');
+      return 'VEH-' + dateStr + '-' + timeStr + '-' + Math.floor(Math.random()*9000+1000);
+    }
+    
+    function generatePassengerFields() {
+      const count = parseInt(document.getElementById('passengerCount').value) || 1;
+      let html = '';
+      for (let i = 1; i <= count; i++) {
+        html += `<div class="passenger-row">
+          <span style="display: flex; align-items: center; font-weight: 700; width: 30px;">${i}</span>
+          <input type="text" placeholder="Passenger ${i} Name" id="pname_${i}" class="passenger-name">
+          <input type="tel" placeholder="Phone ${i}" id="pphone_${i}" style="width: 120px;">
+        </div>`;
+      }
+      document.getElementById('passengerFields').innerHTML = html;
+    }
+    
+    function toggleMode() {
+      const mode = document.getElementById('entryType').value;
+      document.getElementById('btnText').textContent = mode === 'entry' ? 'Register Entry' : 'Register Exit';
+    }
+    
+    function startCamera() {
+      const video = document.getElementById('video');
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+          .then(stream => {
+            video.srcObject = stream;
+            video.play();
+            detectFace();
+          });
+      }
+    }
+    
+    async function detectFace() {
+      // Simple face detection using canvas
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      
+      // For now just show the captured image
+      document.getElementById('cameraResult').innerHTML = `<img src="${canvas.toDataURL()}" class="detected-face">`;
+    }
+    
+    function getEntries() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+    
+    function saveEntry(entry) {
+      const entries = getEntries();
+      const today = new Date().toISOString().split('T')[0];
+      entries.push({ ...entry, date: today, time: new Date().toISOString() });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+    
+    function registerVehicleEntry() {
+      const plate = document.getElementById('v-plate').value.trim().toUpperCase();
+      const driver = document.getElementById('v-driver').value.trim();
+      const count = parseInt(document.getElementById('passengerCount').value) || 1;
+      
+      if (!plate || !driver) {
+        alert('Please fill in plate number and driver name');
+        return;
+      }
+      
+      const mode = document.getElementById('entryType').value;
+      const entry = {
+        ref: generateRef(),
+        plate: plate,
+        type: document.getElementById('v-type').value,
+        company: document.getElementById('v-company').value,
+        driver: driver,
+        phone: document.getElementById('v-phone').value,
+        purpose: document.getElementById('v-purpose').value,
+        passengerCount: count,
+        mode: mode,
+        status: mode === 'entry' ? 'inside' : 'exited'
+      };
+      
+      // Collect passenger names
+      for (let i = 1; i <= count; i++) {
+        const name = document.getElementById('pname_' + i)?.value;
+        if (name) entry['passenger' + i] = name;
+      }
+      
+      saveEntry(entry);
+      
+      // Show reference
+      document.getElementById('refDisplay').style.display = 'block';
+      document.getElementById('refNumber').textContent = entry.ref;
+      document.getElementById('refTime').textContent = new Date().toLocaleTimeString();
+      
+      loadList();
+    }
+    
+    function loadList() {
+      const entries = getEntries();
+      const today = new Date().toISOString().split('T')[0];
+      const todayEntries = entries.filter(e => e.date === today);
+      
+      document.getElementById('totalEntries').textContent = todayEntries.length;
+      document.getElementById('vehiclesInside').textContent = todayEntries.filter(e => e.status === 'inside').length;
+      document.getElementById('peopleInside').textContent = todayEntries.filter(e => e.status === 'inside').reduce((sum, e) => sum + (e.passengerCount || 1), 0);
+      document.getElementById('exitsToday').textContent = todayEntries.filter(e => e.status === 'exited').length;
+      
+      document.getElementById('vehicleList').innerHTML = todayEntries.slice(-10).reverse().map(e => `
+        <div class="vehicle-item">
+          <div class="plate">${e.plate}</div>
+          <div class="info">${e.driver} | ${e.company || 'Individual'} | ${e.passengerCount} people</div>
+          <div class="passengers">Ref: ${e.ref} | ${e.status === 'inside' ? '▼ Inside' : '▲ Exited'}</div>
+        </div>
+      `).join('') || '<p style="color:#999;">No entries today</p>';
+    }
+    
+    generatePassengerFields();
+    loadList();
+  </script>
+</body>
+</html>

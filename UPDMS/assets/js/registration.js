@@ -1,10 +1,30 @@
-// UPS Registration System - Unified Backend
-// Works with: Firebase → PHP/MySQL → localStorage
+// UPS Registration System - localStorage Only (Offline Capable)
 
-const UPS_REG = window.UPS_DB || {
+// Auto-detect offline mode
+const isOffline = !navigator.onLine;
+
+// Show offline indicator
+function showOfflineIndicator() {
+  if (!document.getElementById('upsOffline')) {
+    const div = document.createElement('div');
+    div.id = 'upsOffline';
+    div.innerHTML = '<i class="fas fa-cloud-off"></i> OFFLINE';
+    div.style.cssText = 'position:fixed;bottom:15px;right:15px;background:#FFC107;color:#333;padding:8px 15px;border-radius:6px;font-weight:700;font-size:0.75rem;z-index:9999;';
+    document.body.appendChild(div);
+  }
+}
+
+if (!navigator.onLine) showOfflineIndicator();
+window.addEventListener('offline', showOfflineIndicator);
+window.addEventListener('online', () => {
+  const el = document.getElementById('upsOffline');
+  if (el) el.remove();
+});
+
+const UPS_REG = {
   STORAGE_KEY: 'ups_active_visits',
   
-  async init() { return 'localStorage'; },
+  init() { return 'localStorage'; },
   
   getActive() {
     return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
